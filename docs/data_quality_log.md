@@ -39,7 +39,7 @@ Every record passes a pydantic model on key fields; rejects are written to `quar
 
 - **NDC extraction alone lifts specific-product matches only from 17% to 24%**, not far above the openfda block. Reason: the NDC directory lists only currently marketed products, so NDCs cited by old recalls often no longer exist. Of unmatched recalls with a keyword NDC, about half have a labeler that is absent from the directory entirely. Specific-product match rate by report year runs from 9 to 25% before 2020, 37% in 2021, 53% in 2024 and 73% in 2026.
 - The generic-name fallback operates at the product family level, which is the project's unit of analysis, so it is adequate for rolling recalls up to families. It cannot tell dosage forms apart, so a recall of one form can be attributed to every family of that ingredient. An 8-record spot check found all plausible, but precision has not been measured; treat it as the weakest method and keep the method column through to the marts so results can be reported with and without it.
-- Overall match rate by year with all methods: 84% in 2018, 86% in 2021, 93% in 2024, 94% in 2026. The project target of 90% applies to shortages, measured in week 4.
+- Overall match rate by year with all methods: 84% in 2018, 86% in 2021, 93% in 2024, 94% in 2026. The 90% target applies to shortages, measured in week 4.
 
 ## NDC directory
 - Product NDCs are 10-digit hyphenated; packages sit in a nested `packaging` list. `ingestion/utils/ndc.py` normalises 4-4-2, 5-3-2 and 5-4-1 layouts to 11-digit 5-4-2 (9-digit 5-4 at product level), with tests.
