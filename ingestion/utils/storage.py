@@ -23,3 +23,12 @@ def write_raw(source: str, records: list[dict], run_date: date | None = None, ro
     path.parent.mkdir(parents=True, exist_ok=True)
     pq.write_table(table, path)
     return path
+
+
+def write_quarantine(source: str, bad: list[dict], run_date: date | None = None, root: Path = RAW_ROOT) -> None:
+    """Keep rejected records next to the day's partition for inspection; no file when nothing was rejected."""
+    if not bad:
+        return
+    path = root / source / f"dt={(run_date or date.today()).isoformat()}" / "quarantine.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(bad, default=str))

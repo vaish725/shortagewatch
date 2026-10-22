@@ -1,19 +1,14 @@
 """Extract the openFDA drug shortages feed (current-state snapshot) into dated raw Parquet."""
 import logging
 
+from ingestion.schemas.models import Shortage
 from ingestion.utils.http import client, fetch_openfda
-from ingestion.utils.storage import write_raw
-
-log = logging.getLogger("ingestion")
+from ingestion.utils.pipeline import land
 
 
 def extract(root=None) -> int:
     with client() as c:
-        records = fetch_openfda(c, "shortages")
-    kwargs = {"root": root} if root else {}
-    path = write_raw("shortages", records, **kwargs)
-    log.info("shortages: %d records -> %s", len(records), path)
-    return len(records)
+        return land("shortages", fetch_openfda(c, "shortages"), Shortage, root)
 
 
 if __name__ == "__main__":
