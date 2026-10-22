@@ -1,6 +1,6 @@
 # Data Quality Log
 
-Issues found in each source and how they are handled. Last checked 2026-10-22. All partition dates (`dt=`) and run timestamps are UTC, so an evening run in US time can carry the next day's date.
+Issues found in each source and how they are handled. The live numbers are in the `mart_data_quality` dbt model (`make quality`, also printed in each CI run's job summary); this file records the reasoning behind them. Last checked 2026-10-22. All partition dates (`dt=`) and run timestamps are UTC, so an evening run in US time can carry the next day's date.
 
 ## Source access summary
 
@@ -56,5 +56,15 @@ Every record passes a pydantic model on key fields; rejects are written to `quar
 - Time-boxed as agreed. Coverage was not improved beyond the above.
 
 ## Pipeline operations
-- The daily job snapshots shortages on its own, so a failure in any other source cannot leave a gap in shortage history. The Monday job pulls the NDC directory, recalls and warning letters as separate steps that each run even if an earlier one fails. Only shortages (daily) and the NDC directory (weekly) are committed to the `data` branch, since recalls and warning letters carry their own dates and can be re-pulled in full.
+- The daily job snapshots shortages on its own, so a failure in any other source cannot leave a gap in shortage history. The Monday job pulls the NDC directory, recalls and warning letters as separate steps that each run even if an earlier one fails. Shortages (daily), and the NDC directory and warning letters (weekly) are committed to the `data` branch. Warning letters are kept because their export is the fragile source and older rows may disappear; recalls are re-pulled in full because openFDA keeps that history.
 - Each step writes a run summary (records landed, quarantined, match rates) to `runs/` on the `data` branch and to the GitHub job summary. A failed run opens a GitHub issue. An extract that yields no valid records raises an error before it can overwrite a good partition.
+
+## Warehouse (dbt) findings
+- **Shortage records to families.** 1,597 of 1,608 records (99.3%) link to a product family, above the 90% target: 1,423 by package NDC, 6 by an NDC in the openfda block, 168 by name and dosage form, 11 unmatched. Only 88.9% are NDC-based; the 168 name matches are the weakest and are tagged `name_form`. Most unmatched-by-NDC records are discontinued products that have left the NDC directory.
+- **Recall matching moved to SQL** with exact parity to the Python matcher on the same inputs (3,085 / 548 / 8 / 757 / 10,348 by method, 14,746 in total). The parity is a dbt test that fails if either side drifts.
+- **Fan-out of ingredient-level matches.** The 9,575 recalls matched only by generic name map to 111,035 recall-family rows (about 12 families each); the 4,181 product-level recalls map to 4,807. Ingredient-level rows must not be counted like product-level ones, which `fct_recalls.match_level` allows.
+- **Families.** 12,402 families from finished human-drug products. Every one has a route from the NDC directory, so none needed the dosage-form default or the unknown bucket; the missing routes sit on products excluded as unfinished or non-human. 8,412 families (68%) have a single supplier group. Known limits: salt forms and release types are not separated (extended-release and immediate-release tablets of one ingredient share a family), and the firm key leaves a trailing "and" on names such as "Eli Lilly and Company".
+- **NDC duplicates.** 2,447 rows share a product NDC with another row; one deterministic row is kept (reported as `duplicate_product_ndc_rows_dropped`).
+- **Unclassified recalls.** Two recalls have classification "Not Yet Classified" and a blank or "N/A" recall number. They are kept and the accepted values include that class.
+- **Shortage episodes.** 300 families have a shortage episode, 295 still active; none yet has a second episode. The episode rule (overlapping record intervals merge; a gap or a Resolved-then-Current flip splits) is covered by a unit test.
+- **Determinism bug caught by the rebuild test.** The first rebuild check failed because ties in NDC de-duplication were broken arbitrarily. Full tiebreakers were added and the history models now rebuild identically, which `tests/test_warehouse.py` checks in CI.
