@@ -1,0 +1,26 @@
+[
+ {
+  "name": "lisinopril",
+  "idGroup": {
+   "rxnormId": [
+    "29046"
+   ]
+  }
+ },
+ {
+  "name": "cisplatin",
+  "idGroup": {
+   "rxnormId": [
+    "2555"
+   ]
+  }
+ },
+ {
+  "name": "amoxicillin",
+  "idGroup": {
+   "rxnormId": [
+    "723"
+   ]
+  }
+ }
+]

@@ -1,0 +1,6 @@
+[project]
+name = "shortagewatch"
+version = "0.1.0"
+description = "Drug shortage early-warning monitor built on public FDA data"
+requires-python = ">=3.12"
+dependencies = ["httpx", "openpyxl"]
