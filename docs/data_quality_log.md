@@ -1,6 +1,6 @@
 # Data Quality Log
 
-Issues found in each source and how they are handled. Last checked 2026-10-21.
+Issues found in each source and how they are handled. Last checked 2026-10-22. All partition dates (`dt=`) and run timestamps are UTC, so an evening run in US time can carry the next day's date.
 
 ## Source access summary
 
@@ -39,15 +39,22 @@ Every record passes a pydantic model on key fields; rejects are written to `quar
 
 - **NDC extraction alone lifts specific-product matches only from 17% to 24%**, not far above the openfda block. Reason: the NDC directory lists only currently marketed products, so NDCs cited by old recalls often no longer exist. Of unmatched recalls with a keyword NDC, about half have a labeler that is absent from the directory entirely. Specific-product match rate by report year runs from 9 to 25% before 2020, 37% in 2021, 53% in 2024 and 73% in 2026.
 - The generic-name fallback operates at the product family level, which is the project's unit of analysis, so it is adequate for rolling recalls up to families. It cannot tell dosage forms apart, so a recall of one form can be attributed to every family of that ingredient. An 8-record spot check found all plausible, but precision has not been measured; treat it as the weakest method and keep the method column through to the marts so results can be reported with and without it.
+- **Match levels.** Matches from the openfda block, NDC text and firm+text identify a specific product (`product` level). Generic-name matches identify only the ingredient (`ingredient` level), so one recall can map to several families; the match level is kept alongside the method so the risk analysis can run with and without them.
+- **Within the analysis window** (recalls reported in the 24 months before the latest report date, from 2024-10-14): 1,583 recalls, 94.3% matched, 64.5% to a specific product. This is the coverage that matters for the risk analysis, not the all-years figure.
 - Overall match rate by year with all methods: 84% in 2018, 86% in 2021, 93% in 2024, 94% in 2026. The 90% target applies to shortages, measured in week 4.
 
 ## NDC directory
 - Product NDCs are 10-digit hyphenated; packages sit in a nested `packaging` list. `ingestion/utils/ndc.py` normalises 4-4-2, 5-3-2 and 5-4-1 layouts to 11-digit 5-4-2 (9-digit 5-4 at product level), with tests.
 - 3 products were quarantined for a missing `generic_name` (hand sanitizers, irrelevant to shortages).
 - `route` about 70% filled. `labeler_name` is the marketing labeler, not necessarily the manufacturer. The 26 MB bulk file is re-downloaded in full on each run.
+- **Weekly snapshot.** Mondays the directory is saved to the `data` branch as zstd Parquet with 15 selected columns (about 3.3 MB, versus 35 MB raw). The directory shows today's market, so supplier counts for past shortages cannot be reconstructed; the weekly history is what will make time-correct supplier counts possible. A drug can also become sole-source because makers left during a shortage, so supplier count can be a consequence of a shortage as well as a cause.
 
 ## Warning letters
 - The data.gov XML link (`fda.gov/DataSets/WarningLetters/WarningLettersDataSet.xml`) returns 404 and the Data Dashboard API needs credentials. The working path is the XLSX export behind the FDA page.
 - **Correction to the week 1 note:** paging is stable, not erratic. Page 0 is empty, pages 1 and 2 hold all the rows that can be reached, and pages 3 and later only repeat them. Repeated pulls added nothing, so the reachable set is 1,797 unique rows (1,796 after validation). The `search_api_fulltext_issuing_office` filter on the page is ignored by the export.
 - **Coverage:** letters posted 2021-01-05 to 2026-04-28, so the last six months are missing and the true total is unknown. The export covers every FDA center; 494 rows come from drug-related offices (matching drug, CDER or pharmaceutical). Use only as a partial firm-level signal with 36-month look-back windows, and state the date range wherever it is reported.
 - Time-boxed as agreed. Coverage was not improved beyond the above.
+
+## Pipeline operations
+- The daily job snapshots shortages on its own, so a failure in any other source cannot leave a gap in shortage history. The Monday job pulls the NDC directory, recalls and warning letters as separate steps that each run even if an earlier one fails. Only shortages (daily) and the NDC directory (weekly) are committed to the `data` branch, since recalls and warning letters carry their own dates and can be re-pulled in full.
+- Each step writes a run summary (records landed, quarantined, match rates) to `runs/` on the `data` branch and to the GitHub job summary. A failed run opens a GitHub issue. An extract that yields no valid records raises an error before it can overwrite a good partition.
