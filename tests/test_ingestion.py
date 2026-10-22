@@ -43,3 +43,23 @@ def test_match_recalls_records_method():
     ]
     out = match_recalls(recalls, ndc)
     assert out["D-1"][0] == "ndc_keyword" and out["D-2"][0] == "generic_name" and "D-3" not in out
+
+
+def test_land_refuses_empty_pull(tmp_path):
+    import pytest
+
+    from ingestion.utils.pipeline import land
+
+    with pytest.raises(RuntimeError):
+        land("shortages", [{"generic_name": "only one field"}], Shortage, root=tmp_path)
+    assert not list(tmp_path.rglob("*.parquet"))  # nothing overwritten
+
+
+def test_summarize_separates_product_and_ingredient_levels():
+    from ingestion.recall_match import summarize
+
+    recalls = [{"recall_number": f"D-{i}", "report_date": "20260101"} for i in range(4)]
+    matched = {"D-0": ("ndc_keyword", ["x"]), "D-1": ("generic_name", ["y"])}
+    s = summarize(recalls, matched)
+    assert s["match_rate"] == 0.5 and s["product_level_rate"] == 0.25
+    assert s["by_method"]["generic_name"] == 1

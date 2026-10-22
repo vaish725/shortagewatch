@@ -19,7 +19,7 @@ from pathlib import Path
 import pyarrow.parquet as pq
 
 from ingestion.utils.ndc import extract_ndcs, product_key
-from ingestion.utils.storage import RAW_ROOT
+from ingestion.utils.storage import RAW_ROOT, write_run_summary
 
 _SUFFIX = re.compile(r"\b(inc|llc|ltd|limited|corp|corporation|co|company|lp|llp|plc|pharmacy)\b")
 
@@ -82,26 +82,43 @@ def match_recalls(recalls: list[dict], ndc: list[dict]) -> dict[str, tuple[str, 
     return out
 
 
+# Product-level methods identify a specific NDC product; generic_name only identifies the ingredient
+# (one recall can map to several families), so the data model keeps the two levels apart.
+LEVEL = {"openfda_block": "product", "ndc_keyword": "product", "ndc_bare": "product", "firm_text": "product", "generic_name": "ingredient"}
+
+
+def summarize(recalls: list[dict], matched: dict) -> dict:
+    """Match rates overall, by method, and within the 24 months before the latest report date."""
+    n = len(recalls)
+    by_method = Counter(m for m, _ in matched.values())
+    product = sum(LEVEL[m] == "product" for m, _ in matched.values())
+    latest_report = max(r["report_date"] for r in recalls)
+    cutoff = f"{int(latest_report[:4]) - 2}{latest_report[4:]}"
+    window = [r for r in recalls if r["report_date"] >= cutoff]
+    in_window = [r["recall_number"] for r in window]
+    return {
+        "recalls": n,
+        "matched": len(matched),
+        "match_rate": round(len(matched) / n, 4),
+        "product_level_rate": round(product / n, 4),
+        "by_method": {m: by_method[m] for m in LEVEL},
+        "window_start": cutoff,
+        "window_recalls": len(window),
+        "window_match_rate": round(sum(k in matched for k in in_window) / len(window), 4),
+        "window_product_level_rate": round(sum(k in matched and LEVEL[matched[k][0]] == "product" for k in in_window) / len(window), 4),
+    }
+
+
 def main() -> None:
     recalls, ndc = latest("enforcement"), latest("ndc")
-    matched = match_recalls(recalls, ndc)
-    methods = Counter(m for m, _ in matched.values())
-    n = len(recalls)
-    print(f"recalls: {n}, matched: {len(matched)} ({len(matched) / n:.1%})")
-    for m in ("openfda_block", "ndc_keyword", "ndc_bare", "firm_text", "generic_name"):
-        print(f"  {m:14s} {methods[m]:6d} ({methods[m] / n:.1%})")
-    # Share that carry an NDC-shaped string at all, to separate "no NDC to find" from "NDC not in directory"
-    with_text = sum(bool(extract_ndcs(f"{r['product_description']} {r.get('code_info') or ''}")) for r in recalls)
-    print(f"recalls with an NDC-shaped string in text: {with_text} ({with_text / n:.1%})")
-    strong = sum(m != "generic_name" for m, _ in matched.values())
-    print(f"matched to a specific product (excluding generic_name): {strong} ({strong / n:.1%})")
-    recent = [r for r in recalls if r["report_date"] >= "20230101"]
-    rm = sum(r["recall_number"] in matched for r in recent)
-    print(f"recalls reported since 2023: {len(recent)}, matched: {rm} ({rm / len(recent):.1%})")
-    # The directory only lists currently marketed products, so older recalls lose their NDC match
-    for y in ("2018", "2021", "2024", "2026"):
-        ys = [r for r in recalls if r["report_date"].startswith(y)]
-        print(f"  {y}: {sum(r['recall_number'] in matched for r in ys) / len(ys):.0%} of {len(ys)}")
+    stats = summarize(recalls, match_recalls(recalls, ndc))
+    n = stats["recalls"]
+    print(f"recalls: {n}, matched: {stats['matched']} ({stats['match_rate']:.1%}), product level: {stats['product_level_rate']:.1%}")
+    for m, c in stats["by_method"].items():
+        print(f"  {m:14s} {c:6d} ({c / n:.1%})  [{LEVEL[m]}]")
+    print(f"24-month window from {stats['window_start']}: {stats['window_recalls']} recalls, "
+          f"matched {stats['window_match_rate']:.1%}, product level {stats['window_product_level_rate']:.1%}")
+    write_run_summary("recall_match", stats)
 
 
 if __name__ == "__main__":
