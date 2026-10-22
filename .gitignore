@@ -5,3 +5,4 @@ __pycache__/
 .env
 *.duckdb
 data/raw/
+data/runs/
