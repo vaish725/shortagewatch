@@ -1,0 +1,43 @@
+name: daily-pipeline
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # daily 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Never run two snapshot jobs at once; they push to the same branch
+concurrency: daily-pipeline
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # History lives on the data branch so it survives ephemeral CI runs
+      - uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data-branch
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - name: Pull shortages feed
+        run: python -m ingestion.sources.shortages
+        env:
+          OPENFDA_API_KEY: ${{ secrets.OPENFDA_API_KEY }}
+      - name: Commit dated snapshot to data branch
+        run: |
+          mkdir -p data-branch/snapshots
+          cp -r data/raw/shortages data-branch/snapshots/
+          cd data-branch
+          git config user.name "shortagewatch-bot"
+          git config user.email "shortagewatch-bot@users.noreply.github.com"
+          git add snapshots
+          # Same-day rerun with identical data produces no diff
+          git diff --cached --quiet || git commit -m "Shortage snapshot $(date -u +%F)"
+          git push origin data

@@ -3,4 +3,13 @@ name = "shortagewatch"
 version = "0.1.0"
 description = "Drug shortage early-warning monitor built on public FDA data"
 requires-python = ">=3.12"
-dependencies = ["httpx", "openpyxl"]
+dependencies = ["httpx", "openpyxl", "tenacity", "pyarrow", "pydantic"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools]
+packages = ["ingestion", "ingestion.sources", "ingestion.schemas", "ingestion.utils"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
