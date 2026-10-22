@@ -12,6 +12,7 @@ The same logic becomes the dbt model int_recall_to_family in week 4.
 Run: .venv/bin/python -m ingestion.recall_match
 """
 import json
+import os
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -35,7 +36,9 @@ def _words(text: str) -> list[str]:
 
 
 def latest(source: str) -> list[dict]:
-    path = sorted((RAW_ROOT / source).glob("dt=*/*.parquet"))[-1]
+    # NDC_SNAPSHOT_DIR points parity runs at the same data/ snapshot dbt reads
+    root = Path(os.getenv("NDC_SNAPSHOT_DIR", RAW_ROOT / "ndc")) if source == "ndc" else RAW_ROOT / source
+    path = sorted(root.glob("dt=*/*.parquet"))[-1]
     return pq.read_table(path).to_pylist()
 
 

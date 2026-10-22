@@ -1,0 +1,58 @@
+version: 2
+
+unit_tests:
+  - name: ndc_text_extraction_and_normalisation
+    description: Keyword and bare NDCs are pulled from text, padded to 11 digits, deduplicated, and dates or lot numbers are ignored.
+    model: int_recall_ndc_tokens
+    given:
+      - input: ref('stg_enforcement')
+        rows:
+          - {recall_number: R1, product_description: "Vial, NDC 0409-4888-10; also 65691-0090 distributed", code_info: "Lot 12345-6789-12-3 Exp 10/29/2025"}
+          - {recall_number: R2, product_description: "NDC: 12345-678-90 and NDC 12345-678-90", code_info: null}
+          - {recall_number: R3, product_description: "no codes here, lot 2023-01-15", code_info: "NDC12345-6789-1"}
+    expect:
+      rows:
+        - {recall_number: R1, ndc_norm: "00409488810", product_key: "004094888", has_keyword: true}
+        - {recall_number: R1, ndc_norm: "656910090", product_key: "656910090", has_keyword: false}
+        - {recall_number: R2, ndc_norm: "12345067890", product_key: "123450678", has_keyword: true}
+        - {recall_number: R3, ndc_norm: "12345678901", product_key: "123456789", has_keyword: true}
+
+  - name: shortage_history_changes_and_disappearances
+    description: A status change starts a new row; a record missing from a later snapshot ends at that snapshot; untracked churn does not split rows.
+    model: int_shortage_history
+    given:
+      - input: ref('stg_shortages')
+        rows:
+          # A: Current on days 1 and 2 (update_date churns), Resolved on day 3
+          - {record_key: A, dt: "2026-01-01", status: Current, availability: Limited, shortage_reason: null, discontinued_date: null, package_ndc: p, product_key: k, company_name: c, generic_name: g, dosage_form: d, initial_posting_date: "2025-12-01", update_date: "2026-01-01"}
+          - {record_key: A, dt: "2026-01-02", status: Current, availability: Limited, shortage_reason: null, discontinued_date: null, package_ndc: p, product_key: k, company_name: c, generic_name: g, dosage_form: d, initial_posting_date: "2025-12-01", update_date: "2026-01-02"}
+          - {record_key: A, dt: "2026-01-03", status: Resolved, availability: Limited, shortage_reason: null, discontinued_date: null, package_ndc: p, product_key: k, company_name: c, generic_name: g, dosage_form: d, initial_posting_date: "2025-12-01", update_date: "2026-01-03"}
+          # B: present on days 1 and 2, gone on day 3
+          - {record_key: B, dt: "2026-01-01", status: Current, availability: null, shortage_reason: null, discontinued_date: null, package_ndc: p2, product_key: k2, company_name: c, generic_name: g, dosage_form: d, initial_posting_date: "2025-11-01", update_date: "2026-01-01"}
+          - {record_key: B, dt: "2026-01-02", status: Current, availability: null, shortage_reason: null, discontinued_date: null, package_ndc: p2, product_key: k2, company_name: c, generic_name: g, dosage_form: d, initial_posting_date: "2025-11-01", update_date: "2026-01-01"}
+    expect:
+      rows:
+        - {record_key: A, status: Current, valid_from: "2026-01-01", last_seen: "2026-01-02", valid_to: "2026-01-03", is_current: false, update_date: "2026-01-02"}
+        - {record_key: A, status: Resolved, valid_from: "2026-01-03", last_seen: "2026-01-03", valid_to: null, is_current: true, update_date: "2026-01-03"}
+        - {record_key: B, status: Current, valid_from: "2026-01-01", last_seen: "2026-01-02", valid_to: "2026-01-03", is_current: false, update_date: "2026-01-01"}
+
+  - name: shortage_episodes_merge_and_split
+    description: Overlapping record intervals form one episode; a gap, or Resolved then Current again, forms a second episode; an open interval keeps the episode active.
+    model: int_shortage_episodes
+    given:
+      - input: ref('int_shortage_record_intervals')
+        rows:
+          # F1: two overlapping intervals -> one resolved episode
+          - {record_key: r1, family_key: F1, start_date: "2020-01-01", end_date: "2020-06-30"}
+          - {record_key: r2, family_key: F1, start_date: "2020-03-01", end_date: "2020-09-30"}
+          # F2: resolved, then a later open interval -> two episodes, second active
+          - {record_key: r3, family_key: F2, start_date: "2019-01-01", end_date: "2019-12-31"}
+          - {record_key: r4, family_key: F2, start_date: "2023-05-01", end_date: null}
+      - input: ref('stg_shortages')
+        rows:
+          - {dt: "2026-01-01"}
+    expect:
+      rows:
+        - {family_key: F1, episode_number: 1, start_date: "2020-01-01", end_date: "2020-09-30", is_active: false, n_records: 2}
+        - {family_key: F2, episode_number: 1, start_date: "2019-01-01", end_date: "2019-12-31", is_active: false, n_records: 1}
+        - {family_key: F2, episode_number: 2, start_date: "2023-05-01", end_date: null, is_active: true, n_records: 1}

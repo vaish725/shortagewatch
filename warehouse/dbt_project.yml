@@ -1,0 +1,28 @@
+name: shortagewatch
+version: "0.1.0"
+config-version: 2
+profile: shortagewatch
+
+model-paths: [models]
+macro-paths: [macros]
+seed-paths: [seeds]
+test-paths: [tests]
+
+# Run dbt from warehouse/. Paths are relative to that folder.
+vars:
+  data_root: ../data-branch      # checkout of the data branch: snapshots/ and runs/
+  raw_root: ../data/raw          # freshly pulled sources that are not stored on the data branch
+  local_runs_root: ../data/runs  # this run's Python summaries, used by the parity test
+
+models:
+  shortagewatch:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table
+
+seeds:
+  shortagewatch:
+    +quote_columns: false

@@ -61,8 +61,10 @@ jobs:
       # Each source runs on its own (always()) so one flaky source does not block the others;
       # the job still ends red if any step failed.
       - name: NDC directory
+        id: ndc
         run: python -m ingestion.sources.ndc
       - name: Recalls
+        id: recalls
         if: always()
         run: python -m ingestion.sources.enforcement
         env:
@@ -70,23 +72,27 @@ jobs:
       - name: Warning letters
         if: always()
         run: python -m ingestion.sources.warning_letters
+      # Skipped, not computed on stale files, when either input failed to refresh
       - name: Recall match rates
-        if: always()
+        if: steps.ndc.outcome == 'success' && steps.recalls.outcome == 'success'
         run: python -m ingestion.recall_match
-      # Only the NDC directory needs history (supplier counts at the right date); the other
-      # sources carry their own dates and can be re-pulled in full, so they are not committed.
-      - name: Commit NDC snapshot and run log to data branch
+      # The NDC directory needs history (supplier counts at the right date). Warning letters come from a
+      # fragile export whose older rows may disappear, so they are kept too. Recalls carry their own
+      # dates and openFDA keeps that history, so they can be re-pulled in full.
+      - name: Commit NDC and warning letter snapshots and run log to data branch
         if: always()
         run: |
           mkdir -p data-branch/snapshots data-branch/runs
-          [ -d data/raw/ndc ] && cp -r data/raw/ndc data-branch/snapshots/ && rm -f data-branch/snapshots/ndc/*/quarantine.json
+          [ -d data/raw/ndc ] && cp -r data/raw/ndc data-branch/snapshots/
+          [ -d data/raw/warning_letters ] && cp -r data/raw/warning_letters data-branch/snapshots/
+          find data-branch/snapshots -name quarantine.json -delete
           [ -d data/runs ] && cp -r data/runs/. data-branch/runs/ || true
-          .github/scripts/commit_to_data.sh "NDC snapshot $(date -u +%F)" snapshots runs
+          .github/scripts/commit_to_data.sh "Weekly snapshots $(date -u +%F)" snapshots runs
       - name: Job summary
         if: always()
         run: python -m ingestion.run_summary >> "$GITHUB_STEP_SUMMARY"
 
-  # Opens (or comments on) an issue so failures reach the owner by email and stay visible in the repo
+  # Opens an issue on the first failure and comments on it for repeats, so failures reach the owner by email without piling up
   alert:
     needs: [shortages, weekly]
     if: failure()
@@ -97,10 +103,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="Pipeline failure $(date -u +%F)"
+          title="Pipeline failure"
           existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number -q '.[0].number')
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Another failure: $RUN_URL"
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Failed again on $(date -u +%F): $RUN_URL"
           else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "A scheduled run failed: $RUN_URL"
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "A scheduled run failed on $(date -u +%F): $RUN_URL. Later failures are added as comments; close this issue once fixed."
           fi

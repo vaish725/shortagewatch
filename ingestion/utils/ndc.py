@@ -32,13 +32,14 @@ def product_key(ndc: str) -> str | None:
 def extract_ndcs(text: str) -> list[tuple[str, bool]]:
     """Find NDC-shaped strings in free text.
 
-    Returns (normalised NDC, preceded_by_NDC_keyword) pairs, de-duplicated in order of appearance.
+    Returns (normalised NDC, preceded_by_NDC_keyword) pairs, de-duplicated in order of first appearance.
+    The flag is True if any occurrence of that NDC follows the keyword.
     """
-    seen, out = set(), []
+    flags: dict[str, bool] = {}
     for m in _NDC_RE.finditer(text or ""):
         raw = "-".join(g for g in m.groups() if g)
         norm = normalize_ndc(raw)
-        if norm and norm not in seen:
-            seen.add(norm)
-            out.append((norm, bool(_KEYWORD_RE.search(text[max(0, m.start() - 16) : m.start()]))))
-    return out
+        if norm:
+            kw = bool(_KEYWORD_RE.search(text[max(0, m.start() - 16) : m.start()]))
+            flags[norm] = flags.get(norm, False) or kw
+    return list(flags.items())

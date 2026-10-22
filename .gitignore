@@ -6,3 +6,9 @@ __pycache__/
 *.duckdb
 data/raw/
 data/runs/
+data-branch/
+warehouse/target/
+warehouse/logs/
+warehouse/dbt_packages/
+*.egg-info/
+warehouse/.user.yml

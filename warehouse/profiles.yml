@@ -1,0 +1,7 @@
+shortagewatch:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: target/shortagewatch.duckdb
+      threads: 4

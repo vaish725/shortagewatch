@@ -1,0 +1,25 @@
+version: 2
+
+# External Parquet read in place by DuckDB. Snapshots live on the data branch (checked out at var data_root);
+# recalls are re-pulled in full each run and are not stored there.
+sources:
+  - name: snapshots
+    meta:
+      external_location: "read_parquet('{{ var('data_root') }}/snapshots/{name}/dt=*/{name}.parquet', hive_partitioning=true, union_by_name=true)"
+    tables:
+      - name: shortages
+        loaded_at_field: "cast(dt as timestamp)"
+        freshness:
+          warn_after: {count: 2, period: day}
+          error_after: {count: 4, period: day}
+      - name: ndc
+        loaded_at_field: "cast(dt as timestamp)"
+        freshness:
+          warn_after: {count: 9, period: day}
+          error_after: {count: 14, period: day}
+      - name: warning_letters
+  - name: raw
+    meta:
+      external_location: "read_parquet('{{ var('raw_root') }}/{name}/dt=*/{name}.parquet', hive_partitioning=true, union_by_name=true)"
+    tables:
+      - name: enforcement

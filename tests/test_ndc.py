@@ -39,3 +39,7 @@ def test_extract_deduplicates_and_handles_empty():
 
 def test_extract_ignores_dates():
     assert extract_ndcs("Exp 10/29/2015 lot 2023-01-15") == []
+
+
+def test_keyword_flag_if_any_occurrence_has_keyword():
+    assert extract_ndcs("0409-4888-10 then NDC 0409-4888-10") == [("00409488810", True)]
