@@ -9,6 +9,13 @@ with products as (
       and product_type like 'HUMAN%'
       and len(ingredients) > 0
 ),
+-- Coarse therapeutic group from the pharmacologic class text (first matching rule in seeds/therapeutic_group_rules.csv)
+groups as (
+    select p.product_ndc, arg_min(r.group_name, r.priority) as therapeutic_group
+    from products p, unnest(p.pharm_classes) as c(cls)
+    join {{ ref('therapeutic_group_rules') }} r on regexp_matches(c.cls, r.pattern, 'i')
+    group by 1
+),
 routed as (
     select
         p.*,
@@ -20,8 +27,10 @@ routed as (
             when len(p.routes) > 0 then 'ndc'
             when d.default_route is not null then 'derived_from_dosage_form'
             else 'unknown'
-        end as route_source
+        end as route_source,
+        coalesce(g.therapeutic_group, 'other') as therapeutic_group
     from products p
+    left join groups g using (product_ndc)
     left join {{ ref('dosage_form_route_default') }} d using (dosage_form_base)
 )
 select
@@ -38,5 +47,9 @@ select
     firm_key,
     labeler_name,
     generic_key,
-    marketing_end_date
+    marketing_end_date,
+    marketing_start_date,
+    marketing_category,
+    product_type,
+    therapeutic_group
 from routed

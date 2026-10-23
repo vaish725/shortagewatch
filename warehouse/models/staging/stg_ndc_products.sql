@@ -19,6 +19,7 @@ typed as (
         {{ json_list('route', '$') }} as routes,
         list_sort(list_transform(
             {{ json_list('active_ingredients', '$[*].name') }}, lambda x: lower(trim(x)))) as ingredients,
+        {{ json_list('pharm_class', '$') }} as pharm_classes,
         marketing_category,
         product_type,
         finished,

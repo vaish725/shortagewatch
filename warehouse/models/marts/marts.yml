@@ -117,7 +117,7 @@ models:
       is strictly before as_of_date, so the regression sees no information from after a shortage began.
     data_tests:
       - unique:
-          arguments: {column_name: "family_key || cast(as_of_date as varchar) || role"}
+          arguments: {column_name: "family_key || cast(as_of_date as varchar) || role || coalesce(set_id, '')"}
     columns:
       - name: family_key
         description: Product family.

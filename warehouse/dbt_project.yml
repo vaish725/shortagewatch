@@ -13,6 +13,8 @@ vars:
   data_root: ../data-branch      # checkout of the data branch: snapshots/ and runs/
   raw_root: ../data/raw          # freshly pulled sources that are not stored on the data branch
   local_runs_root: ../data/runs  # this run's Python summaries, used by the parity test
+  control_seed: '20261023'       # seed for incidence-density control sampling
+  controls_per_case: 5
 
 models:
   shortagewatch:

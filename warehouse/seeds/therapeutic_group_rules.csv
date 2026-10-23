@@ -1,0 +1,6 @@
+priority,group_name,pattern
+1,oncology,antineoplastic|kinase inhibitor|alkylating|antimetabolite|platinum|taxane|topoisomerase|vinca|anthracycline|PD-1|PD-L1|CD20|HER2|aromatase inhibitor|antiandrogen|proteasome|mTOR|PARP|BCL
+2,anti_infective,antibacterial|antibiotic|penicillin|cephalosporin|carbapenem|aminoglycoside|macrolide|fluoroquinolone|tetracycline|sulfonamide|antifungal|azole|echinocandin|antiviral|nucleoside|HIV|antimalarial|antimycobacterial|antiparasitic|anthelmintic|beta-lactam|glycopeptide|lincosamide
+3,cardiovascular,beta-adrenergic|angiotensin|calcium channel|diuretic|anticoagulant|antiplatelet|HMG-CoA|statin|vasodilator|antiarrhythmic|cardiac glycoside|nitrate|vasopressor|alpha-adrenergic|thrombin|factor xa|renin|natriuretic|platelet aggregation
+4,cns_pain,anticonvulsant|opioid|benzodiazepine|antidepressant|antipsychotic|stimulant|barbiturate|anesthetic|analgesic|nonsteroidal|serotonin|dopamine|cholinesterase|muscle relaxant|sedative|hypnotic|anxiolytic|neuromuscular block|GABA|triptan|antiemetic
+5,endocrine_metabolic,insulin|glucagon|GLP-1|thyroid|corticosteroid|glucocorticoid|estrogen|progestin|androgen|sulfonylurea|biguanide|SGLT2|DPP-4|vitamin|bisphosphonate|somatostatin|growth hormone|gonadotropin|electrolyte|potassium|calcium|sodium|iron

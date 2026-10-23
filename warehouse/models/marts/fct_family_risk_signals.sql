@@ -2,7 +2,8 @@
 -- strictly before as_of_date (tests/assert_no_signal_leakage.sql). Recall flags are kept separate for NDC
 -- based (product level) and generic-name based (ingredient level) matches, so analyses can drop the weaker one.
 with spine as (
-    select s.*, d.dosage_form_base, d.release_type, d.route_key
+    select s.*, d.dosage_form_base, d.release_type, d.route_key, d.approval_class, d.therapeutic_group,
+           d.in_analysis_population, d.has_large_firm_supplier
     from {{ ref('int_signal_dates') }} s
     join {{ ref('dim_product_family') }} d using (family_key)
 ),
@@ -74,6 +75,11 @@ select
     s.as_of_date,
     s.role,
     s.episode_number,
+    s.set_id,
+    s.in_analysis_population,
+    s.approval_class,
+    s.therapeutic_group,
+    s.has_large_firm_supplier,
     s.dosage_form_base,
     s.release_type,
     s.route_key,
