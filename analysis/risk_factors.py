@@ -81,7 +81,7 @@ def fit_conditional(df, x, name, notes="") -> tuple[pd.DataFrame, object]:
     beta, cov = np.asarray(res.params), np.asarray(res.cov_params())
     se = np.sqrt(np.diag(cov))
     n_cases = int(df.role.eq("case").sum())
-    meta = dict(model=name, n_cases=n_cases, n_rows=len(df), converged=bool(res.mle_retvals.get("converged", True)),
+    meta = dict(model=name, n_cases=n_cases, n_rows=len(df), converged=bool(np.isfinite(se).all() and np.abs(beta).max() < 15),  # finite SEs and no runaway coefficient (separation)
                 notes=(notes + (f" dropped (no within-set variation): {', '.join(dropped)}." if dropped else "")).strip())
     rows = []
     for c, b, s in zip(cols, beta, se):
@@ -93,6 +93,7 @@ def fit_conditional(df, x, name, notes="") -> tuple[pd.DataFrame, object]:
 
 
 def finish(t: pd.DataFrame) -> pd.DataFrame:
+    t = t.copy()
     z = t.coef / t.se
     from scipy.stats import norm
     t["odds_ratio"] = np.exp(t.coef)
@@ -123,7 +124,7 @@ def plain_logit(df, x, name) -> pd.DataFrame:
     t = pd.DataFrame({"model": name, "term": z.columns, "kind": "term", "coef": res.params.values, "se": res.bse.values,
                       "n_cases": int(y.sum()), "n_rows": len(df), "converged": bool(res.mle_retvals["converged"]),
                       "notes": "unconditional logistic check with case-year indicators, cluster-robust SE by family"})
-    return finish(t[t.term != "const"])
+    return finish(t[t.term != "const"].copy())
 
 
 def run_all() -> pd.DataFrame:

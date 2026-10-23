@@ -202,8 +202,9 @@ models:
 
   - name: mart_watchlist
     description: >
-      Ranked families not currently in shortage with at least one risk reason, as of the latest snapshot.
-      Scores use provisional weights from seeds/risk_weights.csv until the week 6 regression sets them.
+      Ranked approved prescription families not currently in shortage with at least one risk reason, as of the latest
+      snapshot. Points come from seeds/risk_weights.csv, derived from the primary conditional logistic model in
+      docs/analysis_plan.md (one point is a 25% rise in odds). It is a prioritisation aid, not a prediction.
     columns:
       - name: rank
         description: 1 is the highest score; ties break by family_key so the order is reproducible.
@@ -224,7 +225,7 @@ models:
       - name: route_key
         description: Route.
       - name: score
-        description: Sum of the points of the signals that fired (provisional weights).
+        description: Sum of the points of the signals that fired.
         data_tests: [not_null]
       - name: reasons
         description: One plain-language reason per signal that fired, highest points first.
@@ -245,7 +246,7 @@ models:
       - name: as_of_date
         description: Snapshot date the watchlist is computed for.
       - name: weights_status
-        description: provisional until the regression weights replace the seed.
+        description: Where the weights come from (primary model).
 
   - name: mart_data_quality
     description: Live data quality metrics (match rates, quarantine counts, unknown routes, coverage windows) in long form.

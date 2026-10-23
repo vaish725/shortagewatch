@@ -88,3 +88,22 @@ models:
     columns:
       - name: episode_key
         data_tests: [unique, not_null]
+
+seeds:
+  - name: ingredient_match_labels
+    description: Blind hand labels for a seeded sample of 100 ingredient-level recall matches (rules in docs/analysis_plan.md).
+    data_tests:
+      - unique:
+          arguments: {column_name: "recall_number || '|' || matched_ingredient"}
+    columns:
+      - name: label
+        data_tests:
+          - accepted_values:
+              arguments: {values: [0, 1]}
+  - name: risk_weights
+    description: Watchlist points per signal, written by analysis/risk_score.py from the primary model.
+    columns:
+      - name: signal
+        data_tests: [unique, not_null]
+      - name: points
+        data_tests: [not_null]

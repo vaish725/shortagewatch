@@ -1,10 +1,10 @@
 PY = .venv/bin/python
 
-.PHONY: setup ingest test match data-sync transform quality
+.PHONY: setup ingest test match data-sync transform quality analysis
 
 setup:
 	python3 -m venv .venv
-	$(PY) -m pip install -e ".[dev,warehouse]"
+	$(PY) -m pip install -e ".[dev,warehouse,analysis]"
 
 # Pull every source into data/raw/<source>/dt=<date>/
 ingest:
@@ -32,3 +32,11 @@ quality:
 
 test:
 	$(PY) -m pytest -q
+
+# Fit the models in docs/analysis_plan.md and write result tables to the analysis schema of the warehouse.
+# Needs `make transform` first. Rewrites warehouse/seeds/risk_weights.csv; rerun `dbt seed` and `dbt build` after.
+analysis:
+	$(PY) -m analysis.precision
+	$(PY) -m analysis.risk_factors
+	$(PY) -m analysis.duration
+	$(PY) -m analysis.risk_score

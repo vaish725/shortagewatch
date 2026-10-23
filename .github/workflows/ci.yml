@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -e ".[dev,warehouse]"
+      - run: pip install -e ".[dev,warehouse,analysis]"
       - name: Pull recalls (openFDA keeps the full history, so they are not stored on the data branch)
         run: python -m ingestion.sources.enforcement
         env:
@@ -51,6 +51,10 @@ jobs:
         run: dbt build
       - name: Rebuild check and Python tests
         run: pytest -q
+      # Re-fits the models on the latest snapshots as a smoke test. Weights in the repo are only changed by a
+      # deliberate local run, so a drifting estimate does not fail the build.
+      - name: Analysis (models, precision, duration, validation)
+        run: make analysis PY=python
       - name: Generate dbt docs (single file)
         working-directory: warehouse
         run: dbt docs generate --static

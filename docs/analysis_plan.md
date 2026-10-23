@@ -108,3 +108,10 @@ Descriptive only, labelled preliminary. Age distribution of the active shortage 
 ## Deviations
 
 None recorded at the time of commit.
+
+Recorded after the models were run (2026-10-23). None of these changed an estimate or a decision rule.
+
+1. Convergence: statsmodels `ConditionalLogit` returns no convergence flag, so a model is marked converged when all standard errors are finite and no coefficient exceeds 15 in absolute value (a guard against separation). The plan did not specify a check.
+2. Precision: in addition to the strict estimate (unclear cases count as incorrect, as planned), a lenient estimate that counts the unclear cases as correct is reported, because most unclear labels were salts or esters of the matched name.
+3. Without large firms: sets are kept only if both a case and at least one control remain after removing large-firm families.
+4. The plain logistic check omits the sole-source contrasts because it does not use the interaction contrasts; it reports single terms only.

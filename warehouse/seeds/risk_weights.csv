@@ -1,7 +1,8 @@
-signal,points,reason,status
-sole_source,3,sole source (one supplier),provisional
-few_suppliers,1,only 2 to 3 suppliers,provisional
-injectable,2,injectable dosage form,provisional
-recall_product_24m,3,Class I or II recall of this product in the last 24 months,provisional
-recall_ingredient_24m,1,recall of the same ingredient (form unknown) in the last 24 months,provisional
-warning_letter_36m,2,warning letter to a marketing firm in the last 36 months,provisional
+signal,points,reason,status,odds_ratio,ci_low,ci_high
+generic_multi_source,1,generic product with several suppliers,primary model,1.2007,0.6503,2.2169
+sole_source_brand,0,sole-source brand product,primary model,0.4398,0.2235,0.8652
+sole_source_generic,0,sole-source generic product,primary model,0.9174,0.421,1.9991
+injectable,7,injectable dosage form,primary model,4.3635,3.2513,5.8563
+recall_product_24m,3,Class I or II recall of this product in the last 24 months,primary model,1.8329,1.2163,2.7622
+recall_ingredient_24m,2,recall of the same ingredient (form unknown) in the last 24 months,primary model,1.5861,1.0929,2.3018
+warning_letter_24m,2,warning letter to a marketing firm in the last 24 months,primary model,1.7416,1.183,2.564

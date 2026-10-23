@@ -8,9 +8,10 @@ dependencies = ["httpx", "openpyxl", "tenacity", "pyarrow", "pydantic"]
 [project.optional-dependencies]
 dev = ["pytest"]
 warehouse = ["dbt-core", "dbt-duckdb"]
+analysis = ["pandas", "numpy", "scipy", "statsmodels", "lifelines"]
 
 [tool.setuptools]
-packages = ["ingestion", "ingestion.sources", "ingestion.schemas", "ingestion.utils"]
+packages = ["ingestion", "ingestion.sources", "ingestion.schemas", "ingestion.utils", "analysis"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
