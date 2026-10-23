@@ -5,7 +5,7 @@ exposures:
     label: ShortageWatch dashboard
     type: dashboard
     maturity: low
-    url: https://vaishnavik.me/shortagewatch/
+    url: https://vaish725.github.io/shortagewatch/
     description: >
       Public dashboard for hospital pharmacy procurement teams: the weekly watchlist of at-risk drugs with reasons,
       active shortages, risk-factor findings and methodology. Built in week 7.
