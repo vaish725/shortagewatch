@@ -1,10 +1,91 @@
 firm_key,parent_key,note
-hospira,pfizer,Pfizer subsidiary
-pfizer laboratories div pfizer,pfizer,Pfizer division
-west ward pharmaceuticals,hikma,Renamed Hikma
-hikma pharmaceuticals usa,hikma,
-mylan institutional,viatris,Viatris subsidiary
-mylan pharmaceuticals,viatris,Viatris subsidiary
-teva parenteral medicines,teva,Teva subsidiary
-teva pharmaceuticals usa,teva,Teva subsidiary
-actavis pharma,teva,Acquired by Teva
+hospira,pfizer,Reviewed against top firms by shortage and recall records
+hospira a pfizer,pfizer,Reviewed against top firms by shortage and recall records
+hospira lake forest,pfizer,Reviewed against top firms by shortage and recall records
+hospira zagreb d o o,pfizer,Reviewed against top firms by shortage and recall records
+pfizer laboratories div pfizer,pfizer,Reviewed against top firms by shortage and recall records
+pfizer ireland pharmaceuticals unlimited,pfizer,Reviewed against top firms by shortage and recall records
+pfizer manufacturing deutschland gmbh,pfizer,Reviewed against top firms by shortage and recall records
+wyeth pharmaceuticals a subsidiary of pfizer,pfizer,Reviewed against top firms by shortage and recall records
+king legacy a wholly owned subsidiary of pfizer,pfizer,Reviewed against top firms by shortage and recall records
+pharmacia upjohn,pfizer,Reviewed against top firms by shortage and recall records
+pharmacia and upjohn,pfizer,Reviewed against top firms by shortage and recall records
+teva pharmaceuticals usa,teva,Reviewed against top firms by shortage and recall records
+teva parenteral medicines,teva,Reviewed against top firms by shortage and recall records
+teva pharmaceuticals,teva,Reviewed against top firms by shortage and recall records
+teva czech industries s r o,teva,Reviewed against top firms by shortage and recall records
+teva pharmaceutical works private,teva,Reviewed against top firms by shortage and recall records
+teva api india private,teva,Reviewed against top firms by shortage and recall records
+assia chemical industries teva tech site,teva,Reviewed against top firms by shortage and recall records
+actavis pharma,teva,Reviewed against top firms by shortage and recall records
+actavis,teva,Reviewed against top firms by shortage and recall records
+actavis elizabeth,teva,Reviewed against top firms by shortage and recall records
+actavis laboratories fl,teva,Reviewed against top firms by shortage and recall records
+actavis south atlantic,teva,Reviewed against top firms by shortage and recall records
+actavis mid atlantic,teva,Reviewed against top firms by shortage and recall records
+watson laboratories,teva,Reviewed against top firms by shortage and recall records
+watson laboratories actavis florida,teva,Reviewed against top firms by shortage and recall records
+watson pharmaceuticals,teva,Reviewed against top firms by shortage and recall records
+hikma pharmaceuticals usa,hikma,Reviewed against top firms by shortage and recall records
+hikma injectables usa,hikma,Reviewed against top firms by shortage and recall records
+hikma pharmaceuticals,hikma,Reviewed against top firms by shortage and recall records
+hikma pharmceuticals usa,hikma,Reviewed against top firms by shortage and recall records
+hikma specialty usa,hikma,Reviewed against top firms by shortage and recall records
+hikma pharmacuticals usa usa,hikma,Reviewed against top firms by shortage and recall records
+hikma pharmaceutical,hikma,Reviewed against top firms by shortage and recall records
+west ward pharmaceuticals,hikma,Reviewed against top firms by shortage and recall records
+west ward pharmaceutical,hikma,Reviewed against top firms by shortage and recall records
+west ward columbus,hikma,Reviewed against top firms by shortage and recall records
+mylan pharmaceuticals,viatris,Reviewed against top firms by shortage and recall records
+mylan institutional,viatris,Reviewed against top firms by shortage and recall records
+mylan laboratories,viatris,Reviewed against top firms by shortage and recall records
+mylan institutional d b a udl laboratories,viatris,Reviewed against top firms by shortage and recall records
+mylan pharmaceuticals a viatris,viatris,Reviewed against top firms by shortage and recall records
+mylan institutional a viatris,viatris,Reviewed against top firms by shortage and recall records
+mylan specialty a viatris,viatris,Reviewed against top firms by shortage and recall records
+mylan laboratories nashik fdf,viatris,Reviewed against top firms by shortage and recall records
+viatris specialty,viatris,Reviewed against top firms by shortage and recall records
+viatris pharmaceuticals,viatris,Reviewed against top firms by shortage and recall records
+fresenius kabi ipsum s r l,fresenius kabi usa,Reviewed against top firms by shortage and recall records
+fresenius kabi ipsum srl,fresenius kabi usa,Reviewed against top firms by shortage and recall records
+fresenius kabi compounding,fresenius kabi usa,Reviewed against top firms by shortage and recall records
+sandoz incorporated,sandoz,Reviewed against top firms by shortage and recall records
+sandoz gmbh,sandoz,Reviewed against top firms by shortage and recall records
+baxter laboratories pty,baxter healthcare,Reviewed against top firms by shortage and recall records
+baxter of california,baxter healthcare,Reviewed against top firms by shortage and recall records
+baxter laboratories,baxter healthcare,Reviewed against top firms by shortage and recall records
+amneal pharmaceuticals ny,amneal pharmaceuticals,Reviewed against top firms by shortage and recall records
+amneal pharmaceuticals of new york,amneal pharmaceuticals,Reviewed against top firms by shortage and recall records
+amneal pharmaceuticals private,amneal pharmaceuticals,Reviewed against top firms by shortage and recall records
+amneal pharmaceuticals i pvt,amneal pharmaceuticals,Reviewed against top firms by shortage and recall records
+dr reddys laboratories,dr reddy s laboratories,Reviewed against top firms by shortage and recall records
+dr reddy s labratories,dr reddy s laboratories,Reviewed against top firms by shortage and recall records
+dr reddy s labortories,dr reddy s laboratories,Reviewed against top firms by shortage and recall records
+dr reddys laboratories eu,dr reddy s laboratories,Reviewed against top firms by shortage and recall records
+dr reddy s laboratoriees,dr reddy s laboratories,Reviewed against top firms by shortage and recall records
+lupin,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+lupin somerset,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+lupin manufacturing solutions,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+lupin unit 1,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+novel laboratories d b a lupin,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+novel laboratories d b a lupin somerset,lupin pharmaceuticals,Reviewed against top firms by shortage and recall records
+aurobindo pharma usa,aurobindo pharma,Reviewed against top firms by shortage and recall records
+aurobindo pharma unit i,aurobindo pharma,Reviewed against top firms by shortage and recall records
+aurobindo pharmaceutical,aurobindo pharma,Reviewed against top firms by shortage and recall records
+eugia us,aurobindo pharma,Reviewed against top firms by shortage and recall records
+auromedics pharma,aurobindo pharma,Reviewed against top firms by shortage and recall records
+zydus pharmaceuticals usa,zydus lifesciences,Reviewed against top firms by shortage and recall records
+cadila healthcare,zydus lifesciences,Reviewed against top firms by shortage and recall records
+cipla usa,cipla,Reviewed against top firms by shortage and recall records
+cipla therapeutics,cipla,Reviewed against top firms by shortage and recall records
+sagent pharmaceticals,sagent pharmaceuticals,Reviewed against top firms by shortage and recall records
+accord biopharma,accord healthcare,Reviewed against top firms by shortage and recall records
+apotex scientific,apotex,Reviewed against top firms by shortage and recall records
+novartis pharma stein ag,novartis pharmaceuticals,Reviewed against top firms by shortage and recall records
+novartis pharma produktions gmbh,novartis pharmaceuticals,Reviewed against top firms by shortage and recall records
+novartis pharma schweizerhalle ag,novartis pharmaceuticals,Reviewed against top firms by shortage and recall records
+novartis pharma sas,novartis pharmaceuticals,Reviewed against top firms by shortage and recall records
+novartis innovative technologies,novartis pharmaceuticals,Reviewed against top firms by shortage and recall records
+par pharmaceutical,endo pharmaceuticals,Reviewed against top firms by shortage and recall records
+endo usa,endo pharmaceuticals,Reviewed against top firms by shortage and recall records
+caraco pharmaceutical laboratories,sun pharmaceutical industries,Reviewed against top firms by shortage and recall records

@@ -22,11 +22,11 @@ import pyarrow.parquet as pq
 from ingestion.utils.ndc import extract_ndcs, product_key
 from ingestion.utils.storage import RAW_ROOT, write_run_summary
 
-_SUFFIX = re.compile(r"\b(inc|llc|ltd|limited|corp|corporation|co|company|lp|llp|plc|pharmacy)\b")
+_SUFFIX = re.compile(r"\b(?:and )?(?:inc|llc|ltd|limited|corp|corporation|co|company|lp|llp|plc|pharmacy)\b")
 
 
 def firm_key(name: str) -> str:
-    """Lowercase, drop punctuation and legal suffixes so 'Pfizer Inc.' and 'PFIZER' agree."""
+    """Lowercase, drop punctuation, legal suffixes and a joining "and" so 'Pfizer Inc.' and 'PFIZER' agree."""
     s = re.sub(r"[^a-z0-9 ]", " ", (name or "").lower())
     return " ".join(_SUFFIX.sub(" ", s).split())
 

@@ -2,7 +2,7 @@
 --   package_ndc  the record's own package NDC is in the directory
 --   openfda_ndc  an NDC in the record's openfda block is in the directory
 --   name_form    weakest: every ingredient of a family appears in the record's generic name and the dosage form
---                word agrees. Needed for discontinued products that left the directory; ties pick the lowest key.
+--                word and release profile agree. Needed for discontinued products that left the directory; ties pick the lowest key.
 -- Records matching none stay unmatched (and are counted in mart_data_quality).
 with current_records as (
     select * from {{ ref('stg_shortages') }}
@@ -22,13 +22,14 @@ by_ndc as (
     select * from by_package union all select * from by_openfda
 ),
 families as (
-    select distinct family_key, ingredient_list, dosage_form_base from {{ ref('int_product_families') }}
+    select distinct family_key, ingredient_list, dosage_form_base, release_type from {{ ref('int_product_families') }}
 ),
 by_name as (
     select r.record_key, 3, 'name_form', f.family_key
     from current_records r
     join families f
       on f.dosage_form_base = upper(split_part(split_part(r.dosage_form, ',', 1), ' ', -1))
+     and f.release_type = {{ release_type("r.generic_name || ' ' || r.dosage_form") }}
      and list_bool_and(list_transform(
             string_split(f.ingredient_list, ', '),
             lambda i: contains({{ text_key('r.generic_name') }}, {{ text_key('i') }})))

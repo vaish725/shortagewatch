@@ -51,6 +51,13 @@ jobs:
         run: dbt build
       - name: Rebuild check and Python tests
         run: pytest -q
+      - name: Generate dbt docs (single file)
+        working-directory: warehouse
+        run: dbt docs generate --static
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dbt-docs
+          path: warehouse/target/static_index.html
       - name: Data quality metrics
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
@@ -61,3 +68,33 @@ jobs:
           for r in rows:
               print("| " + " | ".join("" if v is None else str(v) for v in r) + " |")
           PY
+
+  # Site layout: / is reserved for the dashboard, /dbt-docs/ holds the dbt documentation.
+  docs:
+    needs: warehouse
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    concurrency: pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dbt-docs
+          path: dl
+      - name: Assemble site
+        run: |
+          mkdir -p site/dbt-docs
+          cp dl/static_index.html site/dbt-docs/index.html
+          printf '<!doctype html><meta charset="utf-8"><title>ShortageWatch</title><p>ShortageWatch dashboard coming soon. <a href="dbt-docs/">Data model documentation</a></p>' > site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

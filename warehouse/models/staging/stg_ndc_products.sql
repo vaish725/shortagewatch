@@ -15,6 +15,7 @@ typed as (
         brand_name,
         dosage_form,
         upper(trim(split_part(dosage_form, ',', 1))) as dosage_form_base,
+        {{ release_type('dosage_form') }} as release_type,
         {{ json_list('route', '$') }} as routes,
         list_sort(list_transform(
             {{ json_list('active_ingredients', '$[*].name') }}, lambda x: lower(trim(x)))) as ingredients,

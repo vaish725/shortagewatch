@@ -1,0 +1,261 @@
+version: 2
+
+models:
+  - name: dim_product_family
+    description: >
+      One row per product family, the level procurement teams substitute at: sorted active ingredient list +
+      dosage form base + release profile (immediate, extended, delayed, liposomal) + route. Built from finished
+      human-drug products in the latest NDC directory snapshot. Supplier counts here are today's market.
+    columns:
+      - name: family_key
+        description: Hash of ingredients, dosage form base, release profile and route. Stable across rebuilds.
+        data_tests: [unique, not_null]
+      - name: ingredient_list
+        description: Comma-separated lowercase active ingredient names, sorted.
+      - name: dosage_form_base
+        description: First word group of the NDC dosage form (INJECTION, TABLET, CAPSULE, ...).
+      - name: release_type
+        description: immediate, extended, delayed or liposomal. Extended and immediate release are separate families.
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['immediate', 'extended', 'delayed', 'liposomal']}
+      - name: route_key
+        description: Sorted route(s) of administration from the NDC directory, or a default derived from the dosage form.
+      - name: route_source
+        description: ndc (route listed), derived_from_dosage_form (default from the seed) or unknown.
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['ndc', 'derived_from_dosage_form', 'unknown']}
+      - name: n_products
+        description: Distinct product NDCs in the family.
+      - name: n_suppliers
+        description: Distinct firm groups (parent companies where known) marketing the family today.
+      - name: is_sole_source
+        description: True when n_suppliers is 1.
+
+  - name: dim_firm
+    description: One row per firm group. Parent companies come from seeds/firm_parent_map.csv; other firms are their own group.
+    columns:
+      - name: firm_group_key
+        description: Parent key from the seed, or the normalised firm key.
+        data_tests: [unique, not_null]
+      - name: example_name
+        description: One raw firm name seen for the group, for display.
+      - name: n_name_variants
+        description: Distinct normalised firm keys rolled into the group.
+      - name: sources
+        description: Sources the group appears in (ndc_labeler, shortage, recall, warning_letter).
+
+  - name: fct_shortage_events
+    description: >
+      One row per shortage episode per product family. Overlapping or touching record-level shortage intervals merge
+      into one episode; a gap, or Resolved then Current again, starts a new one.
+    columns:
+      - name: episode_key
+        description: Hash of family_key and episode_number.
+        data_tests: [unique, not_null]
+      - name: family_key
+        description: Product family in shortage.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: episode_number
+        description: 1 for the first episode of the family, ordered by start date.
+      - name: start_date
+        description: Earliest posting date (or reappearance date) among the episode's records.
+      - name: end_date
+        description: Resolution date proxy; NULL while any record in the episode is still open.
+      - name: is_active
+        description: True while the episode is open.
+      - name: n_records
+        description: Package-level shortage records in the episode.
+      - name: duration_days
+        description: Days from start to end, or to the latest snapshot while active (right-censored).
+
+  - name: fct_recalls
+    description: >
+      One row per recall and matched product family. match_level separates NDC-based product matches from
+      generic-name ingredient matches, which can fan out to many families.
+    data_tests:
+      - unique:
+          arguments: {column_name: "recall_number || family_key"}
+    columns:
+      - name: recall_number
+        description: FDA recall number (two recalls have it blank or N/A).
+      - name: family_key
+        description: Matched product family.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: method
+        description: Match method (openfda_block, ndc_keyword, ndc_bare, firm_text, generic_name).
+      - name: match_level
+        description: product (a specific NDC product) or ingredient (generic name only, dosage form unknown).
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['product', 'ingredient']}
+      - name: classification
+        description: FDA recall class (Class I most serious).
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['Class I', 'Class II', 'Class III', 'Not Yet Classified']}
+      - name: status
+        description: Recall status (Ongoing, Completed, Terminated).
+      - name: report_date
+        description: Date the recall appeared in the FDA enforcement report; the date it became public.
+      - name: recalling_firm
+        description: Recalling firm as written in the report.
+      - name: firm_key
+        description: Normalised recalling firm.
+
+  - name: fct_family_risk_signals
+    description: >
+      Risk signals per product family as of a date. role 'current' is today (watchlist), 'case' is the start of
+      each shortage episode, 'control' is a reference date for a family that never had a shortage. Every event date
+      is strictly before as_of_date, so the regression sees no information from after a shortage began.
+    data_tests:
+      - unique:
+          arguments: {column_name: "family_key || cast(as_of_date as varchar) || role"}
+    columns:
+      - name: family_key
+        description: Product family.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: as_of_date
+        description: Date the signals are measured at. Only earlier events count.
+        data_tests: [not_null]
+      - name: role
+        description: current, case or control.
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['current', 'case', 'control']}
+      - name: episode_number
+        description: For case rows, the shortage episode the row marks the start of.
+      - name: dosage_form_base
+        description: Dosage form base of the family.
+      - name: release_type
+        description: Release profile of the family.
+      - name: route_key
+        description: Route of the family.
+      - name: is_injectable
+        description: True when the dosage form base is INJECTION.
+      - name: n_suppliers
+        description: Distinct firm groups marketing the family as of the date.
+      - name: n_products
+        description: Distinct product NDCs marketed as of the date.
+      - name: supplier_count_source
+        description: history when the NDC snapshot history covers as_of_date, otherwise current (today's directory, which can be wrong for past dates).
+        data_tests:
+          - accepted_values:
+              arguments: {values: ['history', 'current']}
+      - name: supplier_bucket
+        description: 0, 1 (sole source), 2-3 or 4+ suppliers.
+      - name: last_recall_product_date
+        description: Latest Class I or II recall report date before as_of_date matched at product level.
+      - name: last_recall_ingredient_date
+        description: Latest Class I or II recall report date before as_of_date matched by ingredient only (dosage form unknown).
+      - name: n_recalls_product_24m
+        description: Product-level Class I or II recalls in the 24 months before as_of_date.
+      - name: n_recalls_ingredient_24m
+        description: Ingredient-level Class I or II recalls in the 24 months before as_of_date.
+      - name: has_recall_product_24m
+        description: Product-level recall flag. Kept separate from the ingredient flag.
+      - name: has_recall_ingredient_24m
+        description: Ingredient-level recall flag (same ingredient, form unknown).
+      - name: last_warning_letter_date
+        description: Latest drug-office warning letter posted before as_of_date to a firm marketing the family.
+      - name: has_warning_letter_36m
+        description: A warning letter in the 36 months before as_of_date.
+      - name: in_active_shortage
+        description: True when a shortage episode started before as_of_date and had not ended.
+      - name: recall_window_covered
+        description: False when the 24 month recall window starts before the first recall in the data.
+      - name: warning_letter_window_covered
+        description: False when the 36 month window starts before the first warning letter in the data (2021-01), so absence is not evidence.
+
+  - name: fct_shortage_status_daily
+    description: >
+      One row per shortage-affected family per day. Days on or after the first snapshot are observed; earlier days are
+      reconstructed from posting and update dates and understate history (is_observed marks the difference).
+    data_tests:
+      - unique:
+          arguments: {column_name: "family_key || cast(day as varchar)"}
+    columns:
+      - name: family_key
+        description: Product family.
+        data_tests: [not_null]
+      - name: day
+        description: Calendar day.
+        data_tests: [not_null]
+      - name: episode_number
+        description: Shortage episode covering the day, if any.
+      - name: in_shortage
+        description: True when a shortage episode covers the day.
+      - name: n_records_in_shortage
+        description: Package-level records in shortage that day.
+      - name: is_observed
+        description: True from the first snapshot date; false for days inferred from episode dates.
+
+  - name: mart_watchlist
+    description: >
+      Ranked families not currently in shortage with at least one risk reason, as of the latest snapshot.
+      Scores use provisional weights from seeds/risk_weights.csv until the week 6 regression sets them.
+    columns:
+      - name: rank
+        description: 1 is the highest score; ties break by family_key so the order is reproducible.
+        data_tests: [unique, not_null]
+      - name: family_key
+        description: Product family.
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: ingredient_list
+        description: Active ingredients.
+      - name: dosage_form_base
+        description: Dosage form base.
+      - name: release_type
+        description: Release profile.
+      - name: route_key
+        description: Route.
+      - name: score
+        description: Sum of the points of the signals that fired (provisional weights).
+        data_tests: [not_null]
+      - name: reasons
+        description: One plain-language reason per signal that fired, highest points first.
+      - name: reason_text
+        description: Reasons joined for display.
+      - name: n_suppliers
+        description: Suppliers marketing the family.
+      - name: supplier_count_source
+        description: history or current; see fct_family_risk_signals.
+      - name: last_recall_date
+        description: Latest recall (product or ingredient level) before the as-of date.
+      - name: last_recall_product_date
+        description: Latest product-level recall.
+      - name: last_recall_ingredient_date
+        description: Latest ingredient-level recall (form unknown).
+      - name: last_warning_letter_date
+        description: Latest warning letter to a marketing firm.
+      - name: as_of_date
+        description: Snapshot date the watchlist is computed for.
+      - name: weights_status
+        description: provisional until the regression weights replace the seed.
+
+  - name: mart_data_quality
+    description: Live data quality metrics (match rates, quarantine counts, unknown routes, coverage windows) in long form.
+    columns:
+      - name: area
+        description: recalls, shortages, families, ndc, warning_letters or ingestion.
+      - name: metric
+        description: Metric name.
+        data_tests: [not_null]
+      - name: value
+        description: Numeric value (a count or a rate between 0 and 1).
+      - name: detail
+        description: Qualifier such as the window start, match level or run time.

@@ -1,0 +1,7 @@
+signal,points,reason,status
+sole_source,3,sole source (one supplier),provisional
+few_suppliers,1,only 2 to 3 suppliers,provisional
+injectable,2,injectable dosage form,provisional
+recall_product_24m,3,Class I or II recall of this product in the last 24 months,provisional
+recall_ingredient_24m,1,recall of the same ingredient (form unknown) in the last 24 months,provisional
+warning_letter_36m,2,warning letter to a marketing firm in the last 36 months,provisional

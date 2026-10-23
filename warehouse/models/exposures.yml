@@ -1,0 +1,22 @@
+version: 2
+
+exposures:
+  - name: shortagewatch_dashboard
+    label: ShortageWatch dashboard
+    type: dashboard
+    maturity: low
+    url: https://vaishnavik.me/shortagewatch/
+    description: >
+      Public dashboard for hospital pharmacy procurement teams: the weekly watchlist of at-risk drugs with reasons,
+      active shortages, risk-factor findings and methodology. Built in week 7.
+    depends_on:
+      - ref('mart_watchlist')
+      - ref('fct_family_risk_signals')
+      - ref('fct_shortage_events')
+      - ref('fct_shortage_status_daily')
+      - ref('fct_recalls')
+      - ref('dim_product_family')
+      - ref('dim_firm')
+      - ref('mart_data_quality')
+    owner:
+      name: vaish725

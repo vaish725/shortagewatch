@@ -26,6 +26,7 @@ def test_write_raw_is_idempotent_and_flattens_nested(tmp_path):
 
 def test_firm_key_strips_suffixes_and_punctuation():
     assert firm_key("Pfizer Inc.") == firm_key("PFIZER, INC") == "pfizer"
+    assert firm_key("Eli Lilly and Company") == firm_key("Eli Lilly & Co.") == "eli lilly"
 
 
 def test_drug_office_filter():

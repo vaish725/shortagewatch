@@ -8,6 +8,7 @@ select
     family_key,
     any_value(ingredient_list) as ingredient_list,
     any_value(dosage_form_base) as dosage_form_base,
+    any_value(release_type) as release_type,
     any_value(route_key) as route_key,
     any_value(route_source) as route_source,
     count(distinct product_ndc) as n_products,

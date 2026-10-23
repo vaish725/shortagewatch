@@ -56,3 +56,48 @@ unit_tests:
         - {family_key: F1, episode_number: 1, start_date: "2020-01-01", end_date: "2020-09-30", is_active: false, n_records: 2}
         - {family_key: F2, episode_number: 1, start_date: "2019-01-01", end_date: "2019-12-31", is_active: false, n_records: 1}
         - {family_key: F2, episode_number: 2, start_date: "2023-05-01", end_date: null, is_active: true, n_records: 1}
+
+  - name: signals_ignore_events_after_the_as_of_date
+    description: >
+      Look-ahead guard. A recall or warning letter dated after the as-of date must not appear, a recall outside the
+      24 month window must not set the flag, and product and ingredient recalls stay in separate columns.
+    model: fct_family_risk_signals
+    given:
+      - input: ref('int_signal_dates')
+        rows:
+          - {family_key: F1, as_of_date: "2024-01-01", role: case, episode_number: 1}
+      - input: ref('dim_product_family')
+        rows:
+          - {family_key: F1, dosage_form_base: INJECTION, release_type: immediate, route_key: PARENTERAL}
+      - input: ref('stg_ndc_products')
+        rows:
+          - {dt: "2023-01-01"}
+      - input: ref('int_family_labelers')
+        rows:
+          - {family_key: F1, product_ndc: P1, firm_group_key: firm_a, valid_from: "2023-01-01", valid_to: null, is_current: true, marketing_end_date: null}
+      - input: ref('fct_recalls')
+        rows:
+          - {recall_number: R1, family_key: F1, match_level: product, classification: Class II, report_date: "2023-06-01"}
+          - {recall_number: R2, family_key: F1, match_level: product, classification: Class II, report_date: "2024-03-01"}
+          - {recall_number: R3, family_key: F1, match_level: ingredient, classification: Class I, report_date: "2021-01-01"}
+          - {recall_number: R4, family_key: F1, match_level: ingredient, classification: Class III, report_date: "2023-09-01"}
+      - input: ref('stg_warning_letters')
+        rows:
+          - {posted_date: "2023-10-01", firm_key: a_key, is_drug_office: true}
+          - {posted_date: "2024-02-01", firm_key: a_key, is_drug_office: true}
+          - {posted_date: "2023-11-01", firm_key: a_key, is_drug_office: false}
+      - input: ref('int_firms_normalized')
+        rows:
+          - {firm_key: a_key, firm_group_key: firm_a}
+      - input: ref('fct_shortage_events')
+        rows:
+          - {family_key: F1, start_date: "2024-01-01", end_date: null}
+      - input: ref('stg_enforcement')
+        rows:
+          - {report_date: "2012-01-01"}
+    expect:
+      rows:
+        - {family_key: F1, as_of_date: "2024-01-01", role: case, n_suppliers: 1, supplier_count_source: history,
+           last_recall_product_date: "2023-06-01", has_recall_product_24m: true,
+           last_recall_ingredient_date: "2021-01-01", has_recall_ingredient_24m: false,
+           last_warning_letter_date: "2023-10-01", has_warning_letter_36m: true, in_active_shortage: false}
