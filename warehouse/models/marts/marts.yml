@@ -271,6 +271,56 @@ models:
       - name: reason
         description: Plain-language reason shown to the user.
 
+  - name: mart_active_shortages
+    description: One row per active shortage episode with age, status, reason, availability, companies and recall history, for the dashboard table.
+    columns:
+      - name: episode_key
+        data_tests: [unique, not_null]
+      - name: family_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: age_days
+        description: Days since the episode started, to the latest snapshot.
+      - name: status
+        description: Most common status among the episode's active records (Current or To Be Discontinued).
+      - name: shortage_reason
+        description: Most common reason given by the FDA among active records, when stated (often blank).
+      - name: companies
+        description: Up to three companies reporting the shortage, with a count of any others.
+
+  - name: mart_overview
+    description: Single row of KPIs and an auto-generated summary for the landing page.
+    columns:
+      - name: snapshot_date
+        description: Latest shortage snapshot date (UTC); the data-as-of date shown on every page.
+        data_tests: [not_null]
+      - name: active_shortages
+        description: Product families with an active shortage episode.
+      - name: new_this_week
+        description: Episodes that started in the last 7 days (approximate until snapshots accumulate).
+      - name: resolved_this_week
+        description: Episodes that ended in the last 7 days.
+      - name: median_active_age_days
+        description: Median age of active episodes.
+      - name: summary
+        description: Auto-generated plain-language summary.
+
+  - name: mart_shortage_trend_weekly
+    description: Families in shortage at the end of each week; is_observed is false for weeks reconstructed from posting dates.
+    columns:
+      - name: week_start
+        data_tests: [unique, not_null]
+
+  - name: mart_firm_concentration
+    description: Share of active shortage families that involve each firm group.
+    columns:
+      - name: firm_group_key
+        data_tests: [unique, not_null]
+      - name: share_of_active_families
+        description: Active shortage families involving the firm group divided by all active shortage families.
+
   - name: mart_data_quality
     description: Live data quality metrics (match rates, quarantine counts, unknown routes, coverage windows) in long form.
     columns:

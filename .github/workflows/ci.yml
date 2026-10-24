@@ -22,6 +22,8 @@ jobs:
       - run: pytest -q
 
   warehouse:
+    # After a pipeline run, rebuild only when that run succeeded, so a failed run leaves the last good site in place
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +64,23 @@ jobs:
         with:
           name: dbt-docs
           path: warehouse/target/static_index.html
+      - name: Export dashboard data
+        run: python -m analysis.export_dashboard
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Build dashboard
+        working-directory: dashboard
+        run: |
+          npm ci --no-audit --no-fund
+          npm run sources
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-build
+          path: dashboard/build
       - name: Data quality metrics
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
@@ -73,8 +92,9 @@ jobs:
               print("| " + " | ".join("" if v is None else str(v) for v in r) + " |")
           PY
 
-  # Site layout: / is reserved for the dashboard, /dbt-docs/ holds the dbt documentation.
-  docs:
+  # One deployment carries the whole site, because each Pages deployment replaces the previous one:
+  # the dashboard at / and the dbt documentation at /dbt-docs/. Runs only when the warehouse job passed.
+  site:
     needs: warehouse
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -89,13 +109,17 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          name: dashboard-build
+          path: site
+      - uses: actions/download-artifact@v4
+        with:
           name: dbt-docs
           path: dl
-      - name: Assemble site
+      - name: Add dbt docs to the site
         run: |
           mkdir -p site/dbt-docs
           cp dl/static_index.html site/dbt-docs/index.html
-          printf '<!doctype html><meta charset="utf-8"><title>ShortageWatch</title><p>ShortageWatch dashboard coming soon. <a href="dbt-docs/">Data model documentation</a></p>' > site/index.html
+          touch site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

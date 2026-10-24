@@ -1,0 +1,5 @@
+node_modules/
+.evidence/
+build/
+sources/shortagewatch/*.csv
+.DS_Store

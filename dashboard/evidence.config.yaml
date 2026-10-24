@@ -1,0 +1,8 @@
+deployment:
+  # Project Pages are served from a subpath; without this, asset links break
+  basePath: /shortagewatch
+plugins:
+  components:
+    "@evidence-dev/core-components": {}
+  datasources:
+    "@evidence-dev/csv": {}

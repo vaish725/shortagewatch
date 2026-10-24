@@ -1,6 +1,6 @@
 PY = .venv/bin/python
 
-.PHONY: setup ingest test match data-sync transform quality analysis
+.PHONY: setup ingest test match data-sync transform quality analysis dashboard
 
 setup:
 	python3 -m venv .venv
@@ -40,3 +40,8 @@ analysis:
 	$(PY) -m analysis.risk_factors
 	$(PY) -m analysis.duration
 	$(PY) -m analysis.risk_score
+
+# Build the static dashboard from the warehouse (needs `make transform` and `make analysis`). Output: dashboard/build/
+dashboard:
+	$(PY) -m analysis.export_dashboard
+	cd dashboard && npm ci --no-audit --no-fund && npm run sources && npm run build
