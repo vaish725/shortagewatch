@@ -1,30 +1,17 @@
 -- Ranked watchlist of approved prescription families not currently in shortage, scored from the signals as of the
 -- latest snapshot. Points come from seeds/risk_weights.csv, written by analysis/risk_score.py from the primary
--- risk-factor model (docs/analysis_plan.md). Only signals with positive points fire. Every row carries at least
--- one reason; families with no signal are left off.
-with weights as (select signal, points, reason from {{ ref('risk_weights') }} where points > 0),
+-- risk-factor model (docs/analysis_plan.md). Every row has at least one scored reason; families with none are left off.
+-- same_ingredient_recall_unverified is shown but never scored: that match is only about 57% precise.
+with scored as (
+    select family_key, sum(points) as score, list(reason order by points desc, signal) as reasons
+    from {{ ref('mart_watchlist_reasons') }}
+    group by 1
+),
 base as (
     select s.*, d.ingredient_list
     from {{ ref('fct_family_risk_signals') }} s
     join {{ ref('dim_product_family') }} d using (family_key)
-    where s.role = 'current' and s.in_analysis_population and not s.in_active_shortage and s.n_products > 0
-),
-fired as (
-    select family_key, 'generic_multi_source' as signal from base where approval_class = 'generic' and n_suppliers > 1
-    union all select family_key, 'sole_source_brand' from base where approval_class = 'brand' and n_suppliers = 1
-    union all select family_key, 'sole_source_generic' from base where approval_class = 'generic' and n_suppliers = 1
-    union all select family_key, 'injectable' from base where is_injectable
-    union all select family_key, 'recall_product_24m' from base where has_recall_product_24m
-    union all select family_key, 'recall_ingredient_24m' from base where has_recall_ingredient_24m
-    union all select family_key, 'warning_letter_24m' from base where last_warning_letter_date >= as_of_date - interval 24 month
-),
-scored as (
-    select
-        f.family_key,
-        sum(w.points) as score,
-        list(w.reason order by w.points desc, w.signal) as reasons
-    from fired f join weights w using (signal)
-    group by 1
+    where s.role = 'current'
 )
 select
     -- Ties on score: most recent product-level recall, then fewer suppliers, then most recent warning letter
@@ -36,9 +23,11 @@ select
     b.dosage_form_base,
     b.release_type,
     b.route_key,
+    b.therapeutic_group,
     sc.score,
     sc.reasons,
     array_to_string(sc.reasons, '; ') as reason_text,
+    b.has_recall_ingredient_24m as same_ingredient_recall_unverified,
     b.n_suppliers,
     b.supplier_count_source,
     greatest(b.last_recall_product_date, b.last_recall_ingredient_date) as last_recall_date,

@@ -20,7 +20,7 @@ RECENT_CUTOFF = "2025-10-22"  # last 12 months before the 2026-10-22 snapshot
 def load() -> tuple[pd.DataFrame, pd.Timestamp, pd.Timestamp]:
     """Case and control rows in the analysis population, plus the first recall and warning letter dates."""
     df = query("""
-        select set_id, role, family_key, as_of_date, n_suppliers, approval_class, is_injectable, therapeutic_group,
+        select set_id, role, family_key, as_of_date, n_suppliers, n_products, approval_class, is_injectable, therapeutic_group,
                has_large_firm_supplier, last_recall_product_date, last_recall_ingredient_date, last_warning_letter_date
         from fct_family_risk_signals
         where role in ('case', 'control') and in_analysis_population""")
@@ -144,6 +144,12 @@ def run_all() -> pd.DataFrame:
     for m in (12, 36):
         conditional(f"sens_window_{m}m", df, recall_months=m, letter_months=m, notes=f"{m} month recall and warning letter windows")
     conditional("sens_no_large_firms", drop_large(df), notes="families with a top-10 firm group supplier removed")
+    # Post-hoc, exploratory (added after the primary results; see Deviations in docs/analysis_plan.md): a family
+    # with more products has more chances to be listed, which could explain the supplier results.
+    x = design(df, first_recall, first_letter)
+    x["log_products"] = np.log(df.n_products.clip(lower=1))
+    t, _ = fit_conditional(df, x, "explore_log_products", "POST HOC: primary model plus log(number of product NDCs in the family)")
+    out.append(t)
     x = design(df, first_recall, first_letter)
     out.append(plain_logit(df, x, "check_plain_logit"))
 

@@ -227,10 +227,14 @@ models:
       - name: score
         description: Sum of the points of the signals that fired.
         data_tests: [not_null]
+      - name: therapeutic_group
+        description: Coarse therapeutic group from the pharmacologic class (adjustment variable in the model, not scored).
       - name: reasons
-        description: One plain-language reason per signal that fired, highest points first.
+        description: One plain-language reason per scored signal that fired, highest points first.
       - name: reason_text
         description: Reasons joined for display.
+      - name: same_ingredient_recall_unverified
+        description: A Class I or II recall of the same ingredient in the last 24 months whose dosage form is not verified (about 57% precise). Informational only, no points.
       - name: n_suppliers
         description: Suppliers marketing the family.
       - name: supplier_count_source
@@ -247,6 +251,25 @@ models:
         description: Snapshot date the watchlist is computed for.
       - name: weights_status
         description: Where the weights come from (primary model).
+
+  - name: mart_watchlist_reasons
+    description: One row per watchlist family and scored signal that fired, with its points. Feeds the score breakdown on the dashboard.
+    data_tests:
+      - unique:
+          arguments: {column_name: "family_key || signal"}
+    columns:
+      - name: family_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_product_family'), field: family_key}
+      - name: signal
+        description: Signal name from seeds/risk_weights.csv.
+        data_tests: [not_null]
+      - name: points
+        description: Points the signal adds (always positive here).
+      - name: reason
+        description: Plain-language reason shown to the user.
 
   - name: mart_data_quality
     description: Live data quality metrics (match rates, quarantine counts, unknown routes, coverage windows) in long form.
