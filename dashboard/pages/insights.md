@@ -63,6 +63,10 @@ select example_name as name, round(100 * share_of_active_families) as pct from s
 select score, auc, ci_low, ci_high from shortagewatch.validation order by case when score like 'difference%' then 1 else 0 end, auc desc
 ```
 
+```sql man
+select analysis_run_date_utc as run_date, data_snapshot_cutoff as cutoff, substr(code_commit, 1, 7) as short, code_commit as full from shortagewatch.analysis_manifest
+```
+
 ```sql forest
 select svg from shortagewatch.forest_svg
 ```
@@ -70,6 +74,8 @@ select svg from shortagewatch.forest_svg
 <p class="text-sm">Data as of <b>{asof[0].asof}</b> (UTC).</p>
 
 <Alert status="warning">Not medical advice. These are associations in public FDA data, not causes.</Alert>
+
+<p class="text-sm">Analysis frozen on {man[0].run_date}, using data through {man[0].cutoff}, code commit <a href="https://github.com/vaish725/shortagewatch/commit/{man[0].full}">{man[0].short}</a>. The overview, active shortages and watchlist update daily; the results on this page are fixed so they match the pre-committed plan and the write-up.</p>
 
 ## What the evidence says
 

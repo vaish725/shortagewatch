@@ -1,0 +1,10 @@
+{
+  "analysis_run_date_utc": "2026-10-24",
+  "code_commit": "003c6decd33f1aa0fc556d8732b12c833fc1be9b",
+  "code_tree_clean": true,
+  "data_snapshot_cutoff": "2026-10-22",
+  "latest_shortage_snapshot_used": "2026-10-22",
+  "data_branch_commit": "f90c34861e6b8056d1d69dab335b7a4b0bd6a39c",
+  "primary_model_cases": 285,
+  "plan": "docs/analysis_plan.md"
+}

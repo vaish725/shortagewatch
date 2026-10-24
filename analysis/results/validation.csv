@@ -1,0 +1,6 @@
+score,auc,ci_low,ci_high,n_train_cases,n_test_cases,note
+shipped points score,0.625974025974026,0.5753246753246753,0.6772727272727272,131,154,"optimistic: supplier counts are measured today, so they carry information from after the case date"
+model linear predictor,0.5889610389610389,0.5343993506493507,0.6415584415584416,131,154,"optimistic: supplier counts are measured today, so they carry information from after the case date"
+baseline: injectable only,0.5707792207792208,0.5298701298701298,0.612987012987013,131,154,"optimistic: supplier counts are measured today, so they carry information from after the case date"
+baseline: fewer suppliers,0.3409090909090909,0.29675324675324677,0.38571428571428573,131,154,"optimistic: supplier counts are measured today, so they carry information from after the case date"
+difference: shipped minus injectable only,0.05519480519480519,0.026623376623376622,0.08376623376623375,131,154,paired bootstrap over test sets; an interval above zero means the extra signals add value

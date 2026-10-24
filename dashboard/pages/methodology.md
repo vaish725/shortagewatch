@@ -114,4 +114,6 @@ Recalls are linked to products by NDC found in the recall text where possible, a
 ## Technical documentation
 
 - [Data model documentation and lineage](https://vaish725.github.io/shortagewatch/dbt-docs/)
+- [Write-up: what public FDA data can and cannot tell us](https://github.com/vaish725/shortagewatch/blob/main/docs/writeup.md)
+- [Analysis plan, committed before any model was run](https://github.com/vaish725/shortagewatch/blob/main/docs/analysis_plan.md)
 - [Source code and pipeline](https://github.com/vaish725/shortagewatch)

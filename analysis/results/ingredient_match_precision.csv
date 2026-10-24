@@ -1,0 +1,2 @@
+n_labelled,n_correct,n_unclear,precision,ci_low,ci_high,lenient_precision,lenient_ci_low,lenient_ci_high,labeller
+100,57,17,0.57,0.4721521169586435,0.6626686099947162,0.74,0.6462882736813838,0.8159542187301354,"single labeller (the AI assistant), blind to family and outcome"

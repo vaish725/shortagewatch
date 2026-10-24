@@ -6,10 +6,6 @@ title: Active shortages
 select strftime(snapshot_date, '%Y-%m-%d') as asof from shortagewatch.overview
 ```
 
-```sql forms
-select distinct dosage_form_base from shortagewatch.active_shortages order by 1
-```
-
 ```sql headline
 select 'Half of active shortages are older than ' || cast(round(median(age_days)) as integer) || ' days' as t from shortagewatch.active_shortages
 ```
@@ -22,13 +18,11 @@ select 'Half of active shortages are older than ' || cast(round(median(age_days)
 
 One row per product family in an active shortage. Age is counted from the FDA posting date, so it includes the whole time the family has been listed.
 
-<Dropdown name=form data={forms} value=dosage_form_base title="Dosage form" multiple=true selectAllByDefault=true />
-
 ```sql filtered
-select * from shortagewatch.active_shortages
-where dosage_form_base in ${inputs.form.value}
-order by age_days desc
+select * from shortagewatch.active_shortages order by age_days desc
 ```
+
+Search by ingredient, form, company or reason, or click a column heading to sort.
 
 <DataTable data={filtered} search=true rows=15 downloadable=true>
   <Column id=ingredient_list title="Ingredients" />

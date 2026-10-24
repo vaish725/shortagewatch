@@ -1,0 +1,8 @@
+signal,points,reason,status,odds_ratio,ci_low,ci_high
+generic_multi_source,0,generic product with several suppliers,dropped: not robust to product-count adjustment,1.2006694691295512,0.6502811759720812,2.216898208601584
+sole_source_brand,0,sole-source brand product,primary model (no positive effect),0.43975298007520564,0.22351781707907994,0.865177935307976
+sole_source_generic,0,sole-source generic product,primary model (no positive effect),0.917423152179769,0.42102709767720287,1.9990761753790005
+injectable,7,injectable dosage form,primary model,4.363532717615686,3.2512542758184284,5.85632994605122
+recall_product_24m,3,Class I or II recall of this product in the last 24 months,primary model,1.8329181888339077,1.2162578436305662,2.7622342618812623
+recall_ingredient_24m,0,recall of the same ingredient (form unverified) in the last 24 months,"informational: shown, not scored",1.5860884452210977,1.092931340375555,2.301769986026238
+warning_letter_24m,2,warning letter to a marketing firm in the last 24 months,primary model,1.7416209229391098,1.1830140626480354,2.56399609691006
