@@ -1,4 +1,5 @@
 -- Drug recalls from the latest pull (openFDA keeps the full recall history, so only the newest pull is read).
+-- With snapshot_cutoff set, recalls reported after that date are dropped so an earlier analysis can be rebuilt.
 with src as (
     select * from {{ source('raw', 'enforcement') }}
     where dt = (select max(dt) from {{ source('raw', 'enforcement') }})
@@ -19,3 +20,4 @@ select
     list_transform({{ json_list('openfda', '$.product_ndc') }}, lambda x: substr({{ normalize_ndc('x') }}, 1, 9)) as openfda_product_keys,
     dt
 from src
+where {{ parse_date('report_date') }} <= cast('{{ var("snapshot_cutoff") }}' as date)

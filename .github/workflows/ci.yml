@@ -53,10 +53,6 @@ jobs:
         run: dbt build
       - name: Rebuild check and Python tests
         run: pytest -q
-      # Re-fits the models on the latest snapshots as a smoke test. Weights in the repo are only changed by a
-      # deliberate local run, so a drifting estimate does not fail the build.
-      - name: Analysis (models, precision, duration, validation)
-        run: make analysis PY=python
       - name: Generate dbt docs (single file)
         working-directory: warehouse
         run: dbt docs generate --static

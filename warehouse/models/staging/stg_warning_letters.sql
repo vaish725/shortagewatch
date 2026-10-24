@@ -12,6 +12,7 @@ where false
 {% else %}
 with src as (
     select * from {{ source('snapshots', 'warning_letters') }}
+    where dt <= cast('{{ var("snapshot_cutoff") }}' as date)
 ),
 typed as (
     select

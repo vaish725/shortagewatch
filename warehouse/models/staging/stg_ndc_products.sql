@@ -2,6 +2,7 @@
 -- (separate SPL versions); keep one deterministic row so product_ndc is a usable key.
 with src as (
     select * from {{ source('snapshots', 'ndc') }}
+    where dt <= cast('{{ var("snapshot_cutoff") }}' as date)
 ),
 typed as (
     select

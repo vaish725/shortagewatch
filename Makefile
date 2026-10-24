@@ -33,13 +33,18 @@ quality:
 test:
 	$(PY) -m pytest -q
 
-# Fit the models in docs/analysis_plan.md and write result tables to the analysis schema of the warehouse.
-# Needs `make transform` first. Rewrites warehouse/seeds/risk_weights.csv; rerun `dbt seed` and `dbt build` after.
+# Rebuild the frozen analysis (docs/analysis_plan.md): rebuilds the warehouse as of ANALYSIS_CUTOFF, fits the models,
+# and writes analysis/results/ with a manifest of the date, code commit and data versions. CI never refits; run this
+# deliberately, commit analysis/results/ and warehouse/seeds/, then run `make transform` to restore the live warehouse.
+ANALYSIS_CUTOFF ?= 2026-10-22
 analysis:
+	cd warehouse && ../$(PY) -m dbt.cli.main seed --full-refresh --vars '{snapshot_cutoff: "$(ANALYSIS_CUTOFF)"}'
+	cd warehouse && ../$(PY) -m dbt.cli.main run --vars '{snapshot_cutoff: "$(ANALYSIS_CUTOFF)"}'
 	$(PY) -m analysis.precision
 	$(PY) -m analysis.risk_factors
 	$(PY) -m analysis.duration
 	$(PY) -m analysis.risk_score
+	$(PY) -m analysis.freeze $(ANALYSIS_CUTOFF)
 
 # Build the static dashboard from the warehouse (needs `make transform` and `make analysis`). Output: dashboard/build/
 dashboard:

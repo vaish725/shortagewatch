@@ -3,6 +3,7 @@
 -- with a sequence number to separate the few exact collisions.
 with src as (
     select * from {{ source('snapshots', 'shortages') }}
+    where dt <= cast('{{ var("snapshot_cutoff") }}' as date)
 ),
 typed as (
     select

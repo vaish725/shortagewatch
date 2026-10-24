@@ -15,6 +15,7 @@ vars:
   local_runs_root: ../data/runs  # this run's Python summaries, used by the parity test
   control_seed: '20261023'       # seed for incidence-density control sampling
   controls_per_case: 5
+  snapshot_cutoff: '9999-12-31'  # only snapshots and recalls up to this date are used (set to rebuild a frozen analysis)
 
 models:
   shortagewatch:

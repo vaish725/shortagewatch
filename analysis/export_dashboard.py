@@ -1,13 +1,17 @@
 """Export the tables the dashboard reads from the warehouse to CSV files in dashboard/sources/shortagewatch/.
 
 CSV keeps the dashboard independent of the DuckDB file version. The files are build artifacts (not committed).
-Run after `make transform` and `make analysis`:  python -m analysis.export_dashboard
+Live tables come from the warehouse (`make transform`); inference tables come from the committed analysis/results/.
+Run:  python -m analysis.export_dashboard
 """
+import json
+
 import pandas as pd
 
 from analysis.common import ROOT, connect
 
 OUT = ROOT / "dashboard" / "sources" / "shortagewatch"
+RESULTS = ROOT / "analysis" / "results"
 
 # name -> query. Pre-aggregated marts only: the daily fact table never reaches the static site.
 TABLES = {
@@ -17,15 +21,20 @@ TABLES = {
     "watchlist": "select * exclude (reasons, family_key) from mart_watchlist order by rank",
     "watchlist_reasons": "select w.rank, r.signal, r.points, r.reason from mart_watchlist_reasons r join mart_watchlist w using (family_key) order by w.rank, r.points desc",
     "firm_concentration": "select example_name, active_families, share_of_active_families from mart_firm_concentration order by active_families desc limit 15",
-    "model_results": "select model, term, kind, odds_ratio, ci_low, ci_high, p_value, confirmatory, p_holm, n_cases, converged, notes from analysis.model_results",
-    "risk_points": "select signal, points, reason, status, odds_ratio, ci_low, ci_high from analysis.risk_points order by points desc, signal",
-    "validation": "select score, auc, ci_low, ci_high, n_train_cases, n_test_cases, note from analysis.validation",
-    "precision": "select * from analysis.ingredient_match_precision",
-    "duration_age": "select * from analysis.duration_age_summary",
-    "duration_km": "select days, survival, ci_low, ci_high, n_episodes, n_resolved, status from analysis.duration_km order by days",
     "data_quality": "select area, metric, value, detail from mart_data_quality order by area, metric",
 }
 
+
+# Frozen inference: these come from analysis/results/ (committed), never from the live warehouse
+FROZEN = {
+    "model_results": "model, term, kind, odds_ratio, ci_low, ci_high, p_value, confirmatory, p_holm, n_cases, converged, notes",
+    "risk_points": "signal, points, reason, status, odds_ratio, ci_low, ci_high",
+    "validation": "score, auc, ci_low, ci_high, n_train_cases, n_test_cases, note",
+    "precision": "*",
+    "duration_age": "*",
+    "duration_km": "days, survival, ci_low, ci_high, n_episodes, n_resolved, status",
+}
+FROZEN_FILES = {"precision": "ingredient_match_precision", "duration_age": "duration_age_summary"}
 
 FOREST_TERMS = [
     ("sole_source_among_generics", "Sole source among generics (H1, not supported)"),
@@ -101,7 +110,12 @@ def main() -> None:
             path = OUT / f"{name}.csv"
             con.sql(f"copy ({sql}) to '{path}' (header, delimiter ',')")
             print(f"{name}: {con.sql(f'select count(*) from ({sql})').fetchall()[0][0]} rows")
-        results = con.sql("select model, term, odds_ratio, ci_low, ci_high, n_cases from analysis.model_results").df()
+        for name, cols in FROZEN.items():
+            src = RESULTS / f"{FROZEN_FILES.get(name, name)}.csv"
+            con.sql(f"copy (select {cols} from read_csv('{src}')) to '{OUT / (name + '.csv')}' (header, delimiter ',')")
+        manifest = json.loads((RESULTS / "manifest.json").read_text())
+        pd.DataFrame([manifest]).to_csv(OUT / "analysis_manifest.csv", index=False)
+        results = con.sql(f"select model, term, odds_ratio, ci_low, ci_high, n_cases from read_csv('{RESULTS / 'model_results.csv'}')").df()
     finally:
         con.close()
     pd.DataFrame({"svg": [forest_svg(results)]}).to_csv(OUT / "forest_svg.csv", index=False)
