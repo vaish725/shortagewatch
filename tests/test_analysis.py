@@ -1,8 +1,8 @@
-import numpy as np
-import pandas as pd
 import pytest
 
+# The lightweight test job installs only the dev extras; skip this module unless the analysis stack is present
 pytest.importorskip("statsmodels")
+pd = pytest.importorskip("pandas")
 
 from analysis.precision import wilson
 from analysis.risk_factors import design, holm, informative
