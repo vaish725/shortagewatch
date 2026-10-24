@@ -64,7 +64,7 @@ select score, auc, ci_low, ci_high from shortagewatch.validation order by case w
 ```
 
 ```sql man
-select analysis_run_date_utc as run_date, data_snapshot_cutoff as cutoff, substr(code_commit, 1, 7) as short, code_commit as full from shortagewatch.analysis_manifest
+select strftime(analysis_run_date_utc, '%Y-%m-%d') as run_date, strftime(data_snapshot_cutoff, '%Y-%m-%d') as cutoff, substr(code_commit, 1, 7) as short, code_commit as full from shortagewatch.analysis_manifest
 ```
 
 ```sql forest
