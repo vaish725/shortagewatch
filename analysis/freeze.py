@@ -30,7 +30,7 @@ def main(cutoff: str) -> None:
     manifest = {
         "analysis_run_date_utc": datetime.now(timezone.utc).date().isoformat(),
         "code_commit": git("rev-parse", "HEAD"),
-        "code_tree_clean": git("status", "--porcelain", "--", "analysis", "warehouse") == "",
+        "code_tree_clean": git("status", "--porcelain", "--", "analysis", "warehouse", ":(exclude)analysis/results") == "",
         "data_snapshot_cutoff": cutoff,
         "latest_shortage_snapshot_used": snaps,
         "data_branch_commit": git("rev-parse", "HEAD", cwd=ROOT / "data-branch"),
