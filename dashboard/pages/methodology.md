@@ -101,7 +101,7 @@ Recall and warning-letter terms are set to zero for matched sets whose look-back
   <Column id=detail />
 </DataTable>
 
-Recalls are linked to products by NDC found in the recall text where possible, and otherwise by firm and product name or by ingredient name. Ingredient-level matches cannot tell dosage forms apart. A hand-labelled sample of {prec[0].n_labelled} of them was {prec[0].strict} correct, or {prec[0].lenient} counting salt and ester forms of the matched name as correct. Because of that, ingredient-level recalls are shown on the watchlist for information and are never scored. The labels were made by one labeller, who was blind to which families were cases.
+Recalls are linked to products by NDC found in the recall text where possible, and otherwise by firm and product name or by ingredient name. Ingredient-level matches cannot tell dosage forms apart. A sample of {prec[0].n_labelled} of them, labelled by a single AI rater with no human second check, was {prec[0].strict} correct, or {prec[0].lenient} counting salt and ester forms of the matched name as correct. Because of that, ingredient-level recalls are shown on the watchlist for information and are never scored. The labels were made by one labeller, who was blind to which families were cases.
 
 ## Limits
 

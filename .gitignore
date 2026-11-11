@@ -12,3 +12,4 @@ warehouse/logs/
 warehouse/dbt_packages/
 *.egg-info/
 warehouse/.user.yml
+.coverage

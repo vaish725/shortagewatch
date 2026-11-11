@@ -69,6 +69,8 @@ make test                  # Python tests
 
 Rebuild the frozen analysis deliberately with `make analysis` (it rebuilds the warehouse as of 2026-10-22, fits the models and rewrites `analysis/results/` and the watchlist weights). An optional `OPENFDA_API_KEY` raises the API rate limit.
 
+To reproduce the frozen results exactly, use the `data` branch at the commit named in `analysis/results/manifest.json` and copy `archive/enforcement/dt=2026-10-21/` from that branch into `data/raw/enforcement/`. The recall feed keeps changing, so a fresh pull gives slightly different numbers. Re-running on those inputs gave byte-identical files in `analysis/results/` and `warehouse/seeds/`.
+
 ## Repository layout
 
 | Path | Contents |
