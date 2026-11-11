@@ -15,7 +15,7 @@ Issues found in each source and how they are handled. The live numbers are in th
 Every record passes a pydantic model on key fields; rejects are written to `quarantine.json` beside the day's partition and counted in the run log. Only the 3 NDC rows below have been quarantined so far.
 
 ## Shortages
-- **Unit is the package, not the shortage.** 1,608 records collapse to about 323 product families (active ingredient + dosage form + route, preliminary), median 2 records per family and up to 69. All counts and durations must be taken at family level, never record level. The rollup is built in staging (`int_product_families`, week 4).
+- **Unit is the package, not the shortage.** 1,608 records collapse to about 320 product families (active ingredient + dosage form + route, preliminary), median 2 records per family and up to 69. All counts and durations must be taken at family level, never record level. The rollup is built in staging (`int_product_families`, week 4).
 - **Few resolved records.** Full-feed status counts: Current 1,141, To Be Discontinued 448, Resolved 19 records. At family level that is 146 Current, 172 To Be Discontinued and only 5 Resolved. The week 1 sample of 100 had 1 resolved record, so the sample was not misleading. Consequence: duration analysis rests on right-censored (still active) shortages, and Kaplan-Meier confidence intervals will be wide. The write-up must say so. The daily snapshots will add resolutions over time.
 - Update types: Reverified 939, New 460, Revised 209.
 - `openfda` enrichment block is missing on 294 records (18%). Where present it carries `rxcui`, `route`, `substance_name` and NDCs. The rest need name-based family matching.

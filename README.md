@@ -53,7 +53,7 @@ flowchart LR
 - **Analysis** (`analysis/`): conditional logistic regression with sensitivity checks, Kaplan-Meier durations and a pseudo out-of-time validation. Results are committed to `analysis/results/` with the date and code commit, and CI does not refit them, so the numbers always match the committed plan. Live data (overview, active shortages, watchlist signals) refreshes daily; inference is frozen.
 - **Dashboard** (`dashboard/`): an Evidence static site, built from pre-aggregated tables.
 
-Match quality, at the time of the frozen analysis: 99% of shortage records link to a product family (88.9% by NDC, the rest by name and form); 94% of recalls in the analysis window are linked to a product or ingredient, 64% to a specific product. A hand-labelled sample put the ingredient-level recall match at 57% precise (95% interval 47% to 66%), so it is shown on the watchlist for information and never scored.
+Match quality, at the time of the frozen analysis: 99% of shortage records link to a product family (88.9% by NDC, the rest by name and form); 94% of recalls in the analysis window are linked to a product or ingredient, 64% to a specific product. A 100-pair sample labelled by a single AI rater (no human second check) put the ingredient-level recall match at 57% precise (95% interval 47% to 66%), so it is shown on the watchlist for information and never scored.
 
 ## Run it locally
 
