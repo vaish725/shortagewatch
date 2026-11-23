@@ -1,0 +1,19 @@
+{
+ "step": "recall_match",
+ "run_at": "2026-11-23T18:38:28+00:00",
+ "recalls": 18166,
+ "matched": 14854,
+ "match_rate": 0.8177,
+ "product_level_rate": 0.2428,
+ "by_method": {
+  "openfda_block": 3275,
+  "ndc_keyword": 359,
+  "ndc_bare": 7,
+  "firm_text": 770,
+  "generic_name": 10443
+ },
+ "window_start": "20241111",
+ "window_recalls": 1681,
+ "window_match_rate": 0.9411,
+ "window_product_level_rate": 0.6163
+}
